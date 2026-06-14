@@ -15,6 +15,7 @@ export function LoadingUniverse() {
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!dotsRef.current) return;
@@ -49,22 +50,27 @@ export function LoadingUniverse() {
       );
     }
 
-    // Animate central spinning orb breathing scale
-    const orb = containerRef.current?.querySelector('.relative.w-20.h-20');
-    if (orb) {
-      gsap.to(orb, {
-        scale: 1.05,
-        duration: 2.5,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut',
-      });
+    // Animate typography with a subtle breath
+    if (textRef.current) {
+      const texts = textRef.current.children;
+      gsap.fromTo(
+        texts,
+        { opacity: 0.5 },
+        {
+          opacity: 1,
+          duration: 2,
+          stagger: 0.3,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut'
+        }
+      );
     }
 
     return () => {
       gsap.killTweensOf(dots);
       if (progressRef.current) gsap.killTweensOf(progressRef.current);
-      if (orb) gsap.killTweensOf(orb);
+      if (textRef.current) gsap.killTweensOf(textRef.current.children);
     };
   }, []);
 
@@ -76,31 +82,32 @@ export function LoadingUniverse() {
       className="fixed inset-0 z-40 bg-black flex items-center justify-center"
     >
       {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/3 left-1/3 w-72 h-72 rounded-full bg-[#0A84FF]/5 blur-[100px] animate-breathe" />
         <div className="absolute bottom-1/3 right-1/3 w-56 h-56 rounded-full bg-[#BF5AF2]/5 blur-[80px] animate-breathe" style={{ animationDelay: '4s' }} />
       </div>
 
       <div className="relative z-10 text-center">
-        {/* Spinning orb */}
-        <div className="relative w-20 h-20 mx-auto mb-8">
-          <div className="absolute inset-0 rounded-full border border-white/10 animate-spin-slow" />
-          <div className="absolute inset-2 rounded-full border border-white/5 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '15s' }} />
-          <div className="absolute inset-4 rounded-full border border-[#0A84FF]/20 animate-spin-slow" style={{ animationDuration: '10s' }} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-[#0A84FF] animate-pulse-glow" />
-          </div>
+        {/* Static Logo */}
+        <div className="relative w-32 h-32 mx-auto mb-8">
+          <img 
+            src="https://img.sanishtech.com/u/8de7d55f39754063df8be4065a78de00.png" 
+            alt="Feelora Loading Logo" 
+            className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+          />
         </div>
 
-        <p className="text-sm text-white font-medium mb-2">
-          Building your universe
-        </p>
-        <p className="text-xs text-[#8E8E93] font-mono max-w-xs mx-auto">
-          {loadingMessage || 'Fetching your music from Spotify...'}
-        </p>
+        <div ref={textRef}>
+          <p className="text-sm text-white font-medium mb-2 font-['SF_Pro_Display',-apple-system,sans-serif]">
+            Building your universe
+          </p>
+          <p className="text-xs text-[#8E8E93] font-mono max-w-xs mx-auto px-4">
+            {loadingMessage || 'Fetching your music from Spotify...'}
+          </p>
+        </div>
 
         {/* Animated dots */}
-        <div ref={dotsRef} className="flex items-center justify-center gap-1.5 mt-6">
+        <div ref={dotsRef} className="flex items-center justify-center gap-1.5 mt-8">
           <div className="loading-dot w-1.5 h-1.5 rounded-full bg-[#0A84FF]" />
           <div className="loading-dot w-1.5 h-1.5 rounded-full bg-[#BF5AF2]" />
           <div className="loading-dot w-1.5 h-1.5 rounded-full bg-[#64D2FF]" />
