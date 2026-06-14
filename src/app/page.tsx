@@ -20,6 +20,7 @@ import { playbackController } from '@/services/audio/playbackController';
 
 // UI Components
 import { LoginGate } from '@/components/ui/LoginGate';
+import { FocusModeOverlay } from '@/components/ui/FocusModeOverlay';
 import { NowPlayingHUD } from '@/components/ui/NowPlayingHUD';
 import { SpatialSearch } from '@/components/ui/SpatialSearch';
 import { LyricsPanel } from '@/components/ui/LyricsPanel';
@@ -781,53 +782,13 @@ export default function FeeloraPage() {
       {/* 3D Canvas (always mounted for smooth transitions) */}
       {hasLaunchedUniverse && <SphereCanvas />}
 
-      {/* Focus Mode Backdrop Overlay (dims and blurs the 3D space to focus on lyrics) */}
-      {hasLaunchedUniverse && isFocusMode && (
-        <div
-          onClick={() => useAppStore.getState().setIsFocusMode(false)}
-          className="fixed inset-0 bg-[#030308]/85 backdrop-blur-xl z-20 transition-all duration-700 cursor-pointer"
-        />
-      )}
+      {/* Focus Mode Overlay */}
+      <FocusModeOverlay />
 
       {/* HUD Layer */}
       {hasLaunchedUniverse && !isLoading && (
         <div className="hud-layer">
-          {/* Exit Focus Mode Button */}
-          {isFocusMode && (
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 hud-interactive animate-fade-in">
-              <button
-                onClick={() => useAppStore.getState().setIsFocusMode(false)}
-                className="group flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 bg-black/40 hover:bg-white/5 text-[11px] font-sans font-medium tracking-wide text-white/80 hover:text-white transition-all duration-300 cursor-pointer shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md hover:scale-105 active:scale-95"
-                style={{
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 0 20px rgba(48, 209, 88, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
-                  e.currentTarget.style.borderColor = 'rgba(48, 209, 88, 0.5)';
-                  e.currentTarget.style.color = '#30D158';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
-                }}
-              >
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  className="opacity-60 group-hover:opacity-100 transition-all duration-300"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-                <span>Exit Focus Mode</span>
-              </button>
-            </div>
-          )}
+
 
           {!isFocusMode && (
             <div className="absolute top-6 left-6 right-6 flex justify-between items-center hud-interactive">

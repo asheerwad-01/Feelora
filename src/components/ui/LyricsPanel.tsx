@@ -115,7 +115,7 @@ export function LyricsPanel() {
     }
   }, [isLyricsOpen, isFocusMode]);
 
-  if (!isLyricsOpen) return null;
+  if (!isLyricsOpen || isFocusMode) return null;
 
   return (
     <div
