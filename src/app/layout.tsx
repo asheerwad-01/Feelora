@@ -34,12 +34,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#000000" />
         <meta name="color-scheme" content="dark" />
       </head>
-      <body className="min-h-full bg-black text-white font-sans overflow-hidden">
+      <body className="min-h-full bg-black text-white font-sans overflow-hidden" suppressHydrationWarning>
         {children}
       </body>
     </html>

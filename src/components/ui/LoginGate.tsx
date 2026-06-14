@@ -159,65 +159,43 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
         </p>
 
         {!showClientIdInput ? (
-          <div ref={dashboardRef} className="space-y-8 max-w-3xl mx-auto">
-            {/* Providers Dashboard Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-5 max-w-[300px] mx-auto">
-              
-              {/* Spotify Card */}
-              <div className={`relative rounded-3xl p-5 border backdrop-blur-2xl transition-all duration-500 flex flex-col justify-between h-[210px] ${
-                connectedProviders.spotify 
-                  ? 'bg-gradient-to-br from-[#1DB954]/10 to-black/40 border-[#1DB954]/30 shadow-[0_0_20px_rgba(29,185,84,0.1)]' 
-                  : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10'
-              }`}>
-                <div>
-                  <div className="flex justify-between items-start">
-                    {/* SVG Spotify Icon */}
-                    <div className="w-10 h-10 rounded-xl bg-black/40 flex items-center justify-center text-[#1DB954]">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.4c-.18.27-.53.37-.8.18-2.22-1.36-5.02-1.67-8.31-.92-.3.07-.6-.12-.67-.42-.07-.3.12-.6.42-.67 3.61-.83 6.71-.48 9.18 1.03.27.18.36.53.18.8zm1.2-2.7c-.22.36-.7.48-1.06.26-2.54-1.56-6.42-2.01-9.42-1.1-.4.12-.82-.12-.94-.52-.12-.4.12-.82.52-.94 3.44-1.04 7.72-.53 10.64 1.26.36.22.48.7.26 1.06zm.12-2.82c-3.05-1.81-8.08-1.98-11-1.09-.47.14-.97-.13-1.11-.6-.14-.47.13-.97.6-1.11 3.36-1.02 8.91-.82 12.44 1.28.42.25.56.79.31 1.21-.25.42-.79.56-1.21.31z"/>
-                      </svg>
-                    </div>
-                    {/* Status Pill */}
-                    <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-mono font-bold tracking-wider ${
-                      connectedProviders.spotify ? 'bg-[#1DB954]/20 text-[#1DB954]' : 'bg-white/5 text-[#8E8E93]'
-                    }`}>
-                      {connectedProviders.spotify ? 'LINKED' : 'DISCONNECTED'}
-                    </span>
-                  </div>
-                  <h3 className="text-left text-lg font-semibold text-white mt-4">Spotify</h3>
-                  <p className="text-left text-xs text-[#8E8E93] mt-1 font-light leading-relaxed">
-                    Integrate your live Spotify account and Liked Songs.
-                  </p>
+          <div ref={dashboardRef} className="flex flex-col items-center gap-6 mt-12 max-w-[320px] mx-auto w-full">
+            
+            {connectedProviders.spotify ? (
+              <div className="flex flex-col items-center gap-4 w-full">
+                <div className="flex items-center justify-center gap-3 w-full px-8 py-4.5 rounded-full bg-[#1DB954]/10 border border-[#1DB954]/30 text-[#1DB954] shadow-[0_0_20px_rgba(29,185,84,0.1)]">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.4c-.18.27-.53.37-.8.18-2.22-1.36-5.02-1.67-8.31-.92-.3.07-.6-.12-.67-.42-.07-.3.12-.6.42-.67 3.61-.83 6.71-.48 9.18 1.03.27.18.36.53.18.8zm1.2-2.7c-.22.36-.7.48-1.06.26-2.54-1.56-6.42-2.01-9.42-1.1-.4.12-.82-.12-.94-.52-.12-.4.12-.82.52-.94 3.44-1.04 7.72-.53 10.64 1.26.36.22.48.7.26 1.06zm.12-2.82c-3.05-1.81-8.08-1.98-11-1.09-.47.14-.97-.13-1.11-.6-.14-.47.13-.97.6-1.11 3.36-1.02 8.91-.82 12.44 1.28.42.25.56.79.31 1.21-.25.42-.79.56-1.21.31z"/>
+                  </svg>
+                  <span className="font-bold text-[13px] tracking-[0.1em] uppercase">Spotify Connected</span>
                 </div>
-
-                <div className="mt-4">
-                  {connectedProviders.spotify ? (
-                    <button
-                      onClick={handleDisconnectSpotify}
-                      className="w-full py-2.5 rounded-xl border border-[#FF375F]/35 text-[#FF375F] hover:bg-[#FF375F]/15 font-mono text-[10px] tracking-wider uppercase transition-all cursor-pointer"
-                    >
-                      Disconnect
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleConnectSpotify}
-                      className="w-full py-2.5 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] hover:scale-[1.02] text-white font-semibold text-[11px] tracking-wide transition-all shadow-[0_0_15px_rgba(29,185,84,0.2)] cursor-pointer"
-                    >
-                      Connect Library
-                    </button>
-                  )}
-                </div>
+                <button
+                  onClick={handleDisconnectSpotify}
+                  className="text-[10px] font-mono text-[#8E8E93] hover:text-[#FF375F] tracking-widest uppercase transition-colors cursor-pointer"
+                >
+                  Disconnect
+                </button>
               </div>
-            </div>
+            ) : (
+              <button
+                onClick={handleConnectSpotify}
+                className="group flex items-center justify-center gap-3 w-full px-8 py-4.5 rounded-full bg-[#1DB954] hover:bg-[#1ed760] text-black transition-all duration-300 shadow-[0_0_20px_rgba(29,185,84,0.3)] hover:shadow-[0_0_30px_rgba(29,185,84,0.5)] cursor-pointer hover:-translate-y-0.5"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.4c-.18.27-.53.37-.8.18-2.22-1.36-5.02-1.67-8.31-.92-.3.07-.6-.12-.67-.42-.07-.3.12-.6.42-.67 3.61-.83 6.71-.48 9.18 1.03.27.18.36.53.18.8zm1.2-2.7c-.22.36-.7.48-1.06.26-2.54-1.56-6.42-2.01-9.42-1.1-.4.12-.82-.12-.94-.52-.12-.4.12-.82.52-.94 3.44-1.04 7.72-.53 10.64 1.26.36.22.48.7.26 1.06zm.12-2.82c-3.05-1.81-8.08-1.98-11-1.09-.47.14-.97-.13-1.11-.6-.14-.47.13-.97.6-1.11 3.36-1.02 8.91-.82 12.44 1.28.42.25.56.79.31 1.21-.25.42-.79.56-1.21.31z"/>
+                </svg>
+                <span className="font-bold text-[13px] tracking-[0.1em] uppercase">Connect Spotify</span>
+              </button>
+            )}
 
             {/* Launch CTA */}
-            <div className="flex flex-col items-center gap-4 mt-12">
+            <div className="flex flex-col items-center w-full gap-4 mt-2">
               <button
                 disabled={!isAnyConnected}
                 onClick={handleEnterUniverse}
-                className={`px-10 py-4.5 rounded-full font-bold text-[13px] tracking-[0.1em] uppercase transition-all duration-300 shadow-xl ${
+                className={`w-full px-8 py-4.5 rounded-full font-bold text-[13px] tracking-[0.1em] uppercase transition-all duration-300 shadow-xl ${
                   isAnyConnected 
-                    ? 'bg-white text-black hover:scale-105 active:scale-95 cursor-pointer hover:shadow-white/20' 
+                    ? 'bg-white text-black hover:scale-105 active:scale-95 cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
                     : 'bg-white/10 text-white/30 border border-white/5 cursor-not-allowed'
                 }`}
               >
