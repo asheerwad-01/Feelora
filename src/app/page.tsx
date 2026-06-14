@@ -834,13 +834,7 @@ export default function FeeloraPage() {
               {/* Left: Logo */}
               <div className="flex items-center gap-3 select-none w-[200px]">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl glass flex items-center justify-center">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" opacity="0.5"/>
-                      <circle cx="12" cy="12" r="4" stroke="white" strokeWidth="1.5" opacity="0.7"/>
-                      <circle cx="12" cy="12" r="1.5" fill="white" opacity="0.9"/>
-                    </svg>
-                  </div>
+                  <img src="https://img.sanishtech.com/u/70f54405d87620b39d258e66fa21e321.png" alt="Feelora" className="w-9 h-9 object-contain" />
                   <span className="text-[12px] font-mono tracking-[0.3em] uppercase font-bold text-white/70">
                     FEELORA
                   </span>
