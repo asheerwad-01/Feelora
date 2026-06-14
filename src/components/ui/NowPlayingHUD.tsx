@@ -187,7 +187,7 @@ export function NowPlayingHUD() {
     >
       <div
         ref={panelRef}
-        className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 md:p-5 w-[95vw] md:min-w-[600px] lg:min-w-[700px] max-w-[800px] flex flex-col gap-3"
+        className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 md:p-5 w-[95vw] md:w-[520px] max-w-[620px] flex flex-col gap-3"
       >
         {/* Standard Layout */}
         <div className="flex items-center justify-between gap-4">
