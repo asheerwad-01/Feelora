@@ -36,8 +36,28 @@ export function CameraRig() {
   const isAnimating = useRef(false);
   const targetLookAt = useRef(new THREE.Vector3(0, 0, -10));
 
+  const getBaseFov = useCallback(() => {
+    if (typeof window === 'undefined') return 60;
+    if (window.innerWidth < 768) return 95; // Mobile: much wider FOV
+    if (window.innerWidth < 1024) return 75; // Tablet
+    return 60; // Desktop
+  }, []);
+
   // Camera zoom (FOV adjustment)
-  const targetFov = useRef(60);
+  const targetFov = useRef(getBaseFov());
+
+  // Handle window resize for responsive FOV
+  useEffect(() => {
+    const handleResize = () => {
+      if (!isAnimating.current && !focusedSong) {
+        targetFov.current = getBaseFov();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    // Initial check
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, [focusedSong, getBaseFov]);
 
   // Initialize camera at origin looking outward
   useEffect(() => {
@@ -50,7 +70,7 @@ export function CameraRig() {
     if (!cameraTarget || !focusedSong) return;
 
     isAnimating.current = true;
-    targetFov.current = 60; // Reset zoom to default on focus
+    targetFov.current = getBaseFov(); // Reset zoom to default
 
     const target = new THREE.Vector3(...cameraTarget);
     // Position camera most of the way toward the card (72% of radius)
@@ -97,7 +117,7 @@ export function CameraRig() {
   // Zoom back when focused song is cleared
   useEffect(() => {
     if (!focusedSong && isAnimating.current === false) {
-      targetFov.current = 60; // Reset zoom to default on unfocus
+      targetFov.current = getBaseFov(); // Reset zoom to default on unfocus
       // Animate back to center
       gsap.to(camera.position, {
         x: 0,
