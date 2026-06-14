@@ -1,0 +1,6 @@
+{
+  "name": "Feelora",
+  "description": "An emotional operating system for music, inspired by Apple, VisionOS, and Arc Browser. Immersive, visceral, and highly curated.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
