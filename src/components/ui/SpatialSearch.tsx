@@ -10,8 +10,6 @@ import gsap from 'gsap';
 
 import { useAppStore } from '@/store/useAppStore';
 import { spotifyApi } from '@/services/spotify/spotifyApi';
-import { appleMusicApi } from '@/services/appleMusicApi';
-import { youtubeMusicApi } from '@/services/youtubeMusicApi';
 import { playbackController } from '@/services/audio/playbackController';
 import type { SpatialTrack, Track } from '@/types';
 
@@ -38,8 +36,6 @@ export function SpatialSearch() {
   } = useAppStore();
 
   const [spotifyResults, setSpotifyResults] = useState<Track[]>([]);
-  const [appleResults, setAppleResults] = useState<Track[]>([]);
-  const [youtubeResults, setYoutubeResults] = useState<Track[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -79,8 +75,6 @@ export function SpatialSearch() {
       setSearchQuery('');
       setSearchResults([]);
       setSpotifyResults([]);
-      setAppleResults([]);
-      setYoutubeResults([]);
     }
   }, [isSearchOpen, setSearchQuery, setSearchResults]);
 
@@ -130,26 +124,6 @@ export function SpatialSearch() {
           );
         } else {
           setSpotifyResults([]);
-        }
-
-        if (connectedProviders.appleMusic) {
-          searchPromises.push(
-            appleMusicApi.search(query, 5)
-              .then((results) => setAppleResults(results))
-              .catch(() => setAppleResults([]))
-          );
-        } else {
-          setAppleResults([]);
-        }
-
-        if (connectedProviders.youtubeMusic) {
-          searchPromises.push(
-            youtubeMusicApi.search(query, 5)
-              .then((results) => setYoutubeResults(results))
-              .catch(() => setYoutubeResults([]))
-          );
-        } else {
-          setYoutubeResults([]);
         }
 
         await Promise.all(searchPromises);
@@ -221,8 +195,6 @@ export function SpatialSearch() {
       // Set queue to the corresponding search catalog results category
       let queueResults: Track[] = [];
       if (track.provider === 'spotify') queueResults = spotifyResults;
-      else if (track.provider === 'apple-music') queueResults = appleResults;
-      else if (track.provider === 'youtube-music') queueResults = youtubeResults;
 
       const spatialQueue: SpatialTrack[] = queueResults.map((t) => ({
         ...t,
@@ -241,7 +213,7 @@ export function SpatialSearch() {
 
       await handlePlaySong(spatialTrack);
     },
-    [handlePlaySong, spotifyResults, appleResults, youtubeResults, setPlaybackQueue]
+    [handlePlaySong, spotifyResults, setPlaybackQueue]
   );
 
   if (!isSearchOpen) return null;
@@ -373,81 +345,11 @@ export function SpatialSearch() {
                 </div>
               )}
 
-              {/* Apple Music catalog results */}
-              {connectedProviders.appleMusic && appleResults.length > 0 && (
-                <div className="px-4 py-2 border-t border-white/5">
-                  <p className="text-[10px] font-mono text-[#FF2D55] uppercase tracking-widest px-1 mb-2">
-                    Apple Music Catalog
-                  </p>
-                  {appleResults.map((song) => (
-                    <button
-                      key={song.id}
-                      onClick={() => handlePlayCatalogSong(song)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left cursor-pointer group"
-                    >
-                      {song.coverUrl ? (
-                        <img
-                          src={song.coverUrl}
-                          alt=""
-                          className="w-10 h-10 rounded-lg object-cover shrink-0 animate-fade-in"
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-white/5 shrink-0" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-white truncate font-medium">
-                          {song.title}
-                        </p>
-                        <p className="text-[11px] text-[#8E8E93] truncate font-light">
-                          {song.artist}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
 
-              {/* YouTube Music catalog results */}
-              {connectedProviders.youtubeMusic && youtubeResults.length > 0 && (
-                <div className="px-4 py-2 border-t border-white/5">
-                  <p className="text-[10px] font-mono text-[#FF0000] uppercase tracking-widest px-1 mb-2">
-                    YouTube Music Catalog
-                  </p>
-                  {youtubeResults.map((song) => (
-                    <button
-                      key={song.id}
-                      onClick={() => handlePlayCatalogSong(song)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-left cursor-pointer group"
-                    >
-                      {song.coverUrl ? (
-                        <img
-                          src={song.coverUrl}
-                          alt=""
-                          className="w-10 h-10 rounded-lg object-cover shrink-0 animate-fade-in"
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-white/5 shrink-0" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-white truncate font-medium">
-                          {song.title}
-                        </p>
-                        <p className="text-[11px] text-[#8E8E93] truncate font-light">
-                          {song.artist}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
 
               {/* No results */}
               {localMatches.length === 0 &&
                 spotifyResults.length === 0 &&
-                appleResults.length === 0 &&
-                youtubeResults.length === 0 &&
                 !isSearching && (
                   <div className="px-5 py-8 text-center">
                     <p className="text-sm text-[#48484A]">

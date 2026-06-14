@@ -23,11 +23,7 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
   const [showClientIdInput, setShowClientIdInput] = useState(false);
   const [clientId, setClientId] = useState('');
   
-  // Simulated Modal States
-  const [activeModal, setActiveModal] = useState<'apple' | 'youtube' | null>(null);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -49,7 +45,7 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const alreadyLaunched = localStorage.getItem('feelora_has_launched') === 'true';
-      const isAnyConnected = spotifyAuth.isLoggedIn() || connectedProviders.appleMusic || connectedProviders.youtubeMusic;
+      const isAnyConnected = spotifyAuth.isLoggedIn();
       if (alreadyLaunched && isAnyConnected) {
         console.log('[LoginGate] Auto-launching active session');
         setHasLaunchedUniverse(true);
@@ -107,42 +103,14 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
     }
   };
 
-  // Simulated Login Submit Handlers
-  const handleOpenModal = (provider: 'apple' | 'youtube') => {
-    setLoginEmail('');
-    setLoginPassword('');
-    setIsSubmitting(false);
-    setActiveModal(provider);
-  };
 
-  const handleModalSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginEmail.trim() || !loginPassword.trim()) return;
-
-    setIsSubmitting(true);
-
-    // Simulate standard secure authorization delay
-    setTimeout(() => {
-      if (activeModal === 'apple') {
-        setProviderConnected('appleMusic', true);
-      } else if (activeModal === 'youtube') {
-        setProviderConnected('youtubeMusic', true);
-      }
-      setIsSubmitting(false);
-      setActiveModal(null);
-    }, 1500);
-  };
-
-  const handleDisconnectSimulated = (provider: 'appleMusic' | 'youtubeMusic') => {
-    setProviderConnected(provider, false);
-  };
 
   const handleEnterUniverse = () => {
     localStorage.setItem('feelora_has_launched', 'true');
     setHasLaunchedUniverse(true);
   };
 
-  const isAnyConnected = connectedProviders.spotify || connectedProviders.appleMusic || connectedProviders.youtubeMusic;
+  const isAnyConnected = connectedProviders.spotify;
 
   return (
     <div
@@ -193,7 +161,7 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
         {!showClientIdInput ? (
           <div ref={dashboardRef} className="space-y-8 max-w-3xl mx-auto">
             {/* Providers Dashboard Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-5 max-w-[300px] mx-auto">
               
               {/* Spotify Card */}
               <div className={`relative rounded-3xl p-5 border backdrop-blur-2xl transition-all duration-500 flex flex-col justify-between h-[210px] ${
@@ -240,99 +208,6 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
                   )}
                 </div>
               </div>
-
-              {/* Apple Music Card */}
-              <div className={`relative rounded-3xl p-5 border backdrop-blur-2xl transition-all duration-500 flex flex-col justify-between h-[210px] ${
-                connectedProviders.appleMusic 
-                  ? 'bg-gradient-to-br from-[#FF2D55]/10 to-black/40 border-[#FF2D55]/30 shadow-[0_0_20px_rgba(255,45,85,0.1)]' 
-                  : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10'
-              }`}>
-                <div>
-                  <div className="flex justify-between items-start">
-                    {/* SVG Apple Music Note */}
-                    <div className="w-10 h-10 rounded-xl bg-black/40 flex items-center justify-center text-[#FF2D55]">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h6V3h-8z"/>
-                      </svg>
-                    </div>
-                    {/* Status Pill */}
-                    <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-mono font-bold tracking-wider ${
-                      connectedProviders.appleMusic ? 'bg-[#FF2D55]/20 text-[#FF2D55]' : 'bg-white/5 text-[#8E8E93]'
-                    }`}>
-                      {connectedProviders.appleMusic ? 'LINKED' : 'DISCONNECTED'}
-                    </span>
-                  </div>
-                  <h3 className="text-left text-lg font-semibold text-white mt-4">Apple Music</h3>
-                  <p className="text-left text-xs text-[#8E8E93] mt-1 font-light leading-relaxed">
-                    Import premium library tracks themed in signature Rose.
-                  </p>
-                </div>
-
-                <div className="mt-4">
-                  {connectedProviders.appleMusic ? (
-                    <button
-                      onClick={() => handleDisconnectSimulated('appleMusic')}
-                      className="w-full py-2.5 rounded-xl border border-[#FF375F]/35 text-[#FF375F] hover:bg-[#FF375F]/15 font-mono text-[10px] tracking-wider uppercase transition-all cursor-pointer"
-                    >
-                      Disconnect
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleOpenModal('apple')}
-                      className="w-full py-2.5 rounded-xl bg-[#FF2D55] hover:bg-[#ff3b61] hover:scale-[1.02] text-white font-semibold text-[11px] tracking-wide transition-all shadow-[0_0_15px_rgba(255,45,85,0.2)] cursor-pointer"
-                    >
-                      Connect Library
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* YouTube Music Card */}
-              <div className={`relative rounded-3xl p-5 border backdrop-blur-2xl transition-all duration-500 flex flex-col justify-between h-[210px] ${
-                connectedProviders.youtubeMusic 
-                  ? 'bg-gradient-to-br from-[#FF0000]/10 to-black/40 border-[#FF0000]/30 shadow-[0_0_20px_rgba(255,0,0,0.15)]' 
-                  : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10'
-              }`}>
-                <div>
-                  <div className="flex justify-between items-start">
-                    {/* SVG YouTube Music Icon */}
-                    <div className="w-10 h-10 rounded-xl bg-black/40 flex items-center justify-center text-[#FF0000]">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-                      </svg>
-                    </div>
-                    {/* Status Pill */}
-                    <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-mono font-bold tracking-wider ${
-                      connectedProviders.youtubeMusic ? 'bg-[#FF0000]/20 text-[#FF0000]' : 'bg-white/5 text-[#8E8E93]'
-                    }`}>
-                      {connectedProviders.youtubeMusic ? 'LINKED' : 'DISCONNECTED'}
-                    </span>
-                  </div>
-                  <h3 className="text-left text-lg font-semibold text-white mt-4">YouTube Music</h3>
-                  <p className="text-left text-xs text-[#8E8E93] mt-1 font-light leading-relaxed">
-                    Import premium tracks styled in dark Synthwave Red.
-                  </p>
-                </div>
-
-                <div className="mt-4">
-                  {connectedProviders.youtubeMusic ? (
-                    <button
-                      onClick={() => handleDisconnectSimulated('youtubeMusic')}
-                      className="w-full py-2.5 rounded-xl border border-[#FF375F]/35 text-[#FF375F] hover:bg-[#FF375F]/15 font-mono text-[10px] tracking-wider uppercase transition-all cursor-pointer"
-                    >
-                      Disconnect
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleOpenModal('youtube')}
-                      className="w-full py-2.5 rounded-xl bg-[#FF0000] hover:bg-[#ff1a1a] hover:scale-[1.02] text-white font-semibold text-[11px] tracking-wide transition-all shadow-[0_0_15px_rgba(255,0,0,0.2)] cursor-pointer"
-                    >
-                      Connect Library
-                    </button>
-                  )}
-                </div>
-              </div>
-
             </div>
 
             {/* Launch CTA */}
@@ -403,140 +278,6 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
           </div>
         )}
       </div>
-
-      {/* Simulated Login Modal - Apple Music */}
-      {activeModal === 'apple' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <form 
-            onSubmit={handleModalSubmit}
-            className="relative bg-[#1C1C1E] border border-white/10 rounded-3xl p-7 w-full max-w-sm text-center shadow-2xl animate-fade-in"
-          >
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 rounded-xl bg-[#FF2D55] text-white flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h6V3h-8z"/>
-                </svg>
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-1">Apple Music</h2>
-            <p className="text-xs text-[#8E8E93] mb-6 font-light leading-relaxed">
-              Sign in with your Apple ID to authorize Feelora.
-            </p>
-
-            <div className="space-y-3 mb-6 text-left">
-              <div>
-                <label className="text-[10px] font-mono text-[#8E8E93] uppercase tracking-wider block mb-1">Apple ID</label>
-                <input 
-                  type="email" 
-                  required
-                  placeholder="name@icloud.com" 
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#FF2D55]"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-mono text-[#8E8E93] uppercase tracking-wider block mb-1">Password or Passkey</label>
-                <input 
-                  type="password" 
-                  required
-                  placeholder="••••••••" 
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#FF2D55]"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button 
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="flex-1 py-3 rounded-xl border border-white/10 text-[#8E8E93] text-xs hover:text-white transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 py-3 rounded-xl bg-[#FF2D55] text-white text-xs font-semibold hover:bg-[#ff3b61] transition-all cursor-pointer flex items-center justify-center"
-              >
-                {isSubmitting ? (
-                  <div className="w-4.5 h-4.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                ) : 'Sign In'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Simulated Login Modal - YouTube Music */}
-      {activeModal === 'youtube' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
-          <form 
-            onSubmit={handleModalSubmit}
-            className="relative bg-[#1C1C1E] border border-white/10 rounded-3xl p-7 w-full max-w-sm text-center shadow-2xl animate-fade-in"
-          >
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 rounded-xl bg-[#FF0000] text-white flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-                </svg>
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-1">Google Account</h2>
-            <p className="text-xs text-[#8E8E93] mb-6 font-light leading-relaxed">
-              Continue to YouTube Music on Feelora.
-            </p>
-
-            <div className="space-y-3 mb-6 text-left">
-              <div>
-                <label className="text-[10px] font-mono text-[#8E8E93] uppercase tracking-wider block mb-1">Google Email</label>
-                <input 
-                  type="email" 
-                  required
-                  placeholder="username@gmail.com" 
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#FF0000]"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-mono text-[#8E8E93] uppercase tracking-wider block mb-1">Password</label>
-                <input 
-                  type="password" 
-                  required
-                  placeholder="••••••••" 
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#FF0000]"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button 
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="flex-1 py-3 rounded-xl border border-white/10 text-[#8E8E93] text-xs hover:text-white transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 py-3 rounded-xl bg-[#FF0000] text-white text-xs font-semibold hover:bg-[#ff1a1a] transition-all cursor-pointer flex items-center justify-center"
-              >
-                {isSubmitting ? (
-                  <div className="w-4.5 h-4.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                ) : 'Sign In'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   );
 }

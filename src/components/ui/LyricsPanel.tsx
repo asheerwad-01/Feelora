@@ -122,7 +122,7 @@ export function LyricsPanel() {
       className={`fixed z-30 ${
         isFocusMode
           ? 'inset-0 flex items-center justify-center pointer-events-none'
-          : 'bottom-[235px] md:bottom-[255px] w-[420px] md:w-[520px] max-w-[620px] h-[420px] hud-interactive'
+          : 'bottom-[280px] md:bottom-[290px] w-[420px] md:w-[520px] max-w-[620px] h-[420px] hud-interactive'
       }`}
       style={isFocusMode ? undefined : { left: '50%', transform: 'translateX(-50%)' }}
     >

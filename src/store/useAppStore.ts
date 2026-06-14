@@ -11,9 +11,9 @@ interface AppState {
   userProfile: SpotifyUserProfile | null;
   setAuthenticated: (val: boolean) => void;
   setUserProfile: (profile: SpotifyUserProfile | null) => void;
-  connectedProviders: { spotify: boolean; appleMusic: boolean; youtubeMusic: boolean };
+  connectedProviders: { spotify: boolean };
   setProviderConnected: (
-    provider: 'spotify' | 'appleMusic' | 'youtubeMusic',
+    provider: 'spotify',
     connected: boolean
   ) => void;
   hasLaunchedUniverse: boolean;
@@ -80,7 +80,7 @@ export const useAppStore = create<AppState>((set) => ({
   userProfile: null,
   setAuthenticated: (val) => set({ isAuthenticated: val }),
   setUserProfile: (profile) => set({ userProfile: profile }),
-  connectedProviders: { spotify: false, appleMusic: false, youtubeMusic: false },
+  connectedProviders: { spotify: false },
   setProviderConnected: (provider, connected) =>
     set((state) => {
       const updated = { ...state.connectedProviders, [provider]: connected };

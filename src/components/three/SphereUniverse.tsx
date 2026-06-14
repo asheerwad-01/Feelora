@@ -80,8 +80,6 @@ function createFallbackTexture(
   ctx.arc(256, 250, 4, 0, Math.PI * 2);
   let dotColor = bgColor;
   if (provider === 'spotify') dotColor = '#1DB954';
-  else if (provider === 'apple-music') dotColor = '#FF2D55';
-  else if (provider === 'youtube-music') dotColor = '#FF0000';
   ctx.fillStyle = dotColor + 'aa';
   ctx.fill();
 

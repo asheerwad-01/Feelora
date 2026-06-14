@@ -70,7 +70,7 @@ export interface Track {
   secondaryColor: string;
   spotifyUri?: string;
   isSpotifyTrack?: boolean;
-  provider?: 'spotify' | 'apple-music' | 'youtube-music' | 'demo';
+  provider?: 'spotify' | 'demo';
 }
 
 /* ─── Spatial track — track positioned in the 3D sphere ─── */

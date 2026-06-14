@@ -12,8 +12,6 @@ import { useAppStore } from '@/store/useAppStore';
 import { spotifyAuth } from '@/services/spotify/spotifyAuth';
 import { spotifyApi } from '@/services/spotify/spotifyApi';
 import { spotifyPlayer } from '@/services/spotify/spotifyPlayer';
-import { appleMusicApi } from '@/services/appleMusicApi';
-import { youtubeMusicApi } from '@/services/youtubeMusicApi';
 import { mergeAndDistribute, distributeTracks } from '@/utils/sphereDistribution';
 import { mapSpotifyTrackToTrack } from '@/types';
 import type { Track, SpatialTrack, SpotifyPlaylist } from '@/types';
@@ -312,8 +310,6 @@ export default function FeeloraPage() {
 
       try {
         let spotifyTracks: Track[] = [];
-        let appleTracks: Track[] = [];
-        let youtubeTracks: Track[] = [];
 
         let unsubReady: (() => void) | null = null;
         let unsubNotReady: (() => void) | null = null;
@@ -426,27 +422,8 @@ export default function FeeloraPage() {
           }
         }
 
-        // 2. Apple Music connection
-        if (latestProviders.appleMusic) {
-          try {
-            setLoadingMessage('Importing Apple Music library...');
-            appleTracks = await appleMusicApi.getSavedTracks();
-          } catch (err) {
-            console.warn('[Feelora] Apple Music import failed:', err);
-          }
-        }
 
-        // 3. YouTube Music connection
-        if (latestProviders.youtubeMusic) {
-          try {
-            setLoadingMessage('Importing YouTube Music library...');
-            youtubeTracks = await youtubeMusicApi.getSavedTracks();
-          } catch (err) {
-            console.warn('[Feelora] YouTube Music import failed:', err);
-          }
-        }
-
-        // 4. Merge libraries and build spatial coordinates
+        // 2. Merge libraries and build spatial coordinates
         if (active) {
           setLoadingMessage('Building your universe...');
           const initialSources: { tracks: Track[]; source: string }[] = [];
@@ -454,14 +431,6 @@ export default function FeeloraPage() {
           if (spotifyTracks.length > 0) {
             initialSources.push({ tracks: spotifyTracks, source: 'Spotify' });
             initialSources.push({ tracks: spotifyTracks, source: 'Liked Songs' });
-          }
-          if (appleTracks.length > 0) {
-            initialSources.push({ tracks: appleTracks, source: 'Apple Music' });
-            initialSources.push({ tracks: appleTracks, source: 'Liked Songs' });
-          }
-          if (youtubeTracks.length > 0) {
-            initialSources.push({ tracks: youtubeTracks, source: 'YouTube Music' });
-            initialSources.push({ tracks: youtubeTracks, source: 'Liked Songs' });
           }
 
           let spatialTracks = mergeAndDistribute(initialSources, 7);
@@ -793,8 +762,6 @@ export default function FeeloraPage() {
     localStorage.removeItem('feelora_has_launched');
     spotifyAuth.logout();
     setProviderConnected('spotify', false);
-    setProviderConnected('appleMusic', false);
-    setProviderConnected('youtubeMusic', false);
     setHasLaunchedUniverse(false);
   }, [setProviderConnected, setHasLaunchedUniverse]);
 
@@ -900,8 +867,6 @@ export default function FeeloraPage() {
                     <option value="all">Sphere: All</option>
                     <option value="liked">Sphere: Liked</option>
                     {connectedProviders.spotify && <option value="Spotify">Sphere: Spotify</option>}
-                    {connectedProviders.appleMusic && <option value="Apple Music">Sphere: Apple Music</option>}
-                    {connectedProviders.youtubeMusic && <option value="YouTube Music">Sphere: YouTube Music</option>}
                     {playlists.map((pl) => (
                       <option key={pl.id} value={pl.name}>
                         {pl.name.length > 16 ? pl.name.slice(0, 14) + '…' : pl.name}
