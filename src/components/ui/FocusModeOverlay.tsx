@@ -144,7 +144,7 @@ export function FocusModeOverlay() {
         await playbackController.pause(isSpotify);
         setIsPlaying(false);
       } else {
-        await playbackController.play(isSpotify);
+        await playbackController.resume(isSpotify, currentTrack.title);
         setIsPlaying(true);
       }
     } catch (error) {
