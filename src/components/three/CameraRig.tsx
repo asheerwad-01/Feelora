@@ -214,8 +214,9 @@ export function CameraRig() {
       -Math.cos(rotationY.current) * Math.cos(rotationX.current)
     );
 
-    // Camera stays near origin, only rotates
-    camera.lookAt(lookDir.x, lookDir.y, lookDir.z);
+    // Camera stays at its current position (origin or zoomed in), looks in lookDir
+    const lookTarget = new THREE.Vector3().copy(camera.position).add(lookDir);
+    camera.lookAt(lookTarget);
   });
 
   return null; // No rendered geometry — pure controller
