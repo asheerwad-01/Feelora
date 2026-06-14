@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { spotifyAuth } from '@/services/spotify/spotifyAuth';
 import { useAppStore } from '@/store/useAppStore';
+import { SnowParticles } from '@/components/ui/SnowParticles';
 
 export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
   console.log('[LoginGate] Rendered');
@@ -24,39 +25,25 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
   const [clientId, setClientId] = useState('');
   
 
-
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const orbsRef = useRef<HTMLDivElement>(null);
-  const logoContainerRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLImageElement>(null);
 
-  // 3D Interactive Tilt Effect
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!logoContainerRef.current) return;
-    const { clientX, clientY } = e;
-    const { innerWidth, innerHeight } = window;
-    const xPos = (clientX / innerWidth - 0.5) * 30; // max 15 deg tilt
-    const yPos = (clientY / innerHeight - 0.5) * -30;
-    
-    gsap.to(logoContainerRef.current, {
-      rotationX: yPos,
-      rotationY: xPos,
-      ease: 'power2.out',
-      duration: 0.5
-    });
-  };
-
-  const handleMouseLeave = () => {
-    if (!logoContainerRef.current) return;
-    gsap.to(logoContainerRef.current, {
-      rotationX: 0,
-      rotationY: 0,
-      ease: 'power3.out',
-      duration: 1
-    });
-  };
+  // Subtle Floating Animation for the logo
+  useEffect(() => {
+    if (logoRef.current) {
+      gsap.to(logoRef.current, {
+        y: -12,
+        duration: 3.5,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1
+      });
+    }
+  }, []);
 
   // Sync Spotify OAuth state on mount / update
   useEffect(() => {
@@ -144,20 +131,9 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
   return (
     <div
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black overflow-y-auto py-10 perspective-[1000px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black overflow-y-auto py-10"
     >
-      {/* Micro-elements: Subtle Spatial Dot Grid */}
-      <div 
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.08) 1.5px, transparent 1.5px)',
-          backgroundSize: '32px 32px',
-          maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)'
-        }}
-      />
+      <SnowParticles />
 
       {/* Animated background orbs */}
       <div ref={orbsRef} className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -166,17 +142,18 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#FF2D55]/3 blur-[110px] animate-breathe" style={{ animationDelay: '6s' }} />
       </div>
 
-      <div className="relative z-10 text-center max-w-4xl px-6 mx-auto w-full pt-8 [transform-style:preserve-3d]">
-        {/* Hero Logo with 3D Tilt */}
-        <div 
-          ref={logoContainerRef} 
-          className="mb-10 flex justify-center relative [transform-style:preserve-3d]"
-        >
-          <div className="absolute inset-0 bg-white/5 blur-[80px] rounded-full scale-150 animate-pulse [transform:translateZ(-50px)] pointer-events-none" />
+      <div className="relative z-10 text-center max-w-4xl px-6 mx-auto w-full pt-8">
+        {/* Hero Logo */}
+        <div className="mb-10 flex justify-center relative">
           <img 
-            src="https://img.sanishtech.com/u/bac1f87b288e1e3f814aa882958ae00f.png" 
+            ref={logoRef}
+            src="https://img.sanishtech.com/u/dd127b452bf7e454f3b119c665f70888.png" 
             alt="Feelora Logo" 
-            className="w-56 h-56 md:w-[320px] md:h-[320px] object-contain animate-float relative z-10 drop-shadow-[0_0_50px_rgba(255,255,255,0.2)] [transform:translateZ(40px)]"
+            className="w-64 h-64 md:w-[380px] md:h-[380px] object-cover relative z-10"
+            style={{
+              maskImage: 'radial-gradient(circle, black 50%, transparent 100%)',
+              WebkitMaskImage: 'radial-gradient(circle, black 50%, transparent 100%)'
+            }}
           />
         </div>
 
@@ -199,13 +176,13 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
         </p>
 
         {!showClientIdInput ? (
-          <div ref={dashboardRef} className="flex flex-col items-center gap-6 mt-12 max-w-[320px] mx-auto w-full">
+          <div ref={dashboardRef} className="flex flex-col items-center gap-5 mt-12 max-w-[280px] mx-auto w-full">
             
             <button
               onClick={handleConnectSpotify}
-              className="group flex items-center justify-center gap-3 w-full px-8 py-4.5 rounded-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold text-[13px] tracking-[0.1em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(29,185,84,0.3)] hover:shadow-[0_0_30px_rgba(29,185,84,0.5)] cursor-pointer hover:-translate-y-0.5"
+              className="group flex items-center justify-center gap-3 w-full px-6 py-3.5 rounded-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold text-[12px] tracking-[0.1em] uppercase transition-all duration-300 shadow-[0_0_20px_rgba(29,185,84,0.3)] hover:shadow-[0_0_30px_rgba(29,185,84,0.5)] cursor-pointer hover:-translate-y-0.5"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.4c-.18.27-.53.37-.8.18-2.22-1.36-5.02-1.67-8.31-.92-.3.07-.6-.12-.67-.42-.07-.3.12-.6.42-.67 3.61-.83 6.71-.48 9.18 1.03.27.18.36.53.18.8zm1.2-2.7c-.22.36-.7.48-1.06.26-2.54-1.56-6.42-2.01-9.42-1.1-.4.12-.82-.12-.94-.52-.12-.4.12-.82.52-.94 3.44-1.04 7.72-.53 10.64 1.26.36.22.48.7.26 1.06zm.12-2.82c-3.05-1.81-8.08-1.98-11-1.09-.47.14-.97-.13-1.11-.6-.14-.47.13-.97.6-1.11 3.36-1.02 8.91-.82 12.44 1.28.42.25.56.79.31 1.21-.25.42-.79.56-1.21.31z"/>
               </svg>
               <span>Connect Spotify</span>
@@ -213,9 +190,16 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
 
             <button
               onClick={onEnterDemo}
-              className="px-6 py-2.5 mt-2 rounded-full text-white/40 hover:text-white font-medium text-[10px] tracking-widest uppercase transition-all duration-300 cursor-pointer"
+              className="relative w-full px-6 py-3.5 rounded-full font-bold text-[10px] tracking-[0.2em] uppercase transition-all duration-500 cursor-pointer text-white/60 hover:text-white border border-white/10 hover:border-white/30 bg-black/50 overflow-hidden group shadow-[0_0_15px_rgba(255,255,255,0.02)] hover:shadow-[0_0_25px_rgba(255,255,255,0.1)]"
             >
-              Or Explore Demo Space
+              {/* Edge Lighting Sweep */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out" />
+              {/* Inner Glow */}
+              <div className="absolute inset-0 shadow-[inset_0_0_15px_rgba(255,255,255,0.05)] rounded-full group-hover:shadow-[inset_0_0_25px_rgba(255,255,255,0.15)] transition-shadow duration-500" />
+              
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                Explore Demo Universe <span className="text-sm leading-none group-hover:translate-x-1 transition-transform">→</span>
+              </span>
             </button>
           </div>
         ) : (
