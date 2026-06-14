@@ -30,6 +30,33 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const orbsRef = useRef<HTMLDivElement>(null);
+  const logoContainerRef = useRef<HTMLDivElement>(null);
+
+  // 3D Interactive Tilt Effect
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!logoContainerRef.current) return;
+    const { clientX, clientY } = e;
+    const { innerWidth, innerHeight } = window;
+    const xPos = (clientX / innerWidth - 0.5) * 30; // max 15 deg tilt
+    const yPos = (clientY / innerHeight - 0.5) * -30;
+    
+    gsap.to(logoContainerRef.current, {
+      rotationX: yPos,
+      rotationY: xPos,
+      ease: 'power2.out',
+      duration: 0.5
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (!logoContainerRef.current) return;
+    gsap.to(logoContainerRef.current, {
+      rotationX: 0,
+      rotationY: 0,
+      ease: 'power3.out',
+      duration: 1
+    });
+  };
 
   // Sync Spotify OAuth state on mount / update
   useEffect(() => {
@@ -117,47 +144,58 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black overflow-y-auto py-10"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black overflow-y-auto py-10 perspective-[1000px]"
     >
+      {/* Micro-elements: Subtle Spatial Dot Grid */}
+      <div 
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.08) 1.5px, transparent 1.5px)',
+          backgroundSize: '32px 32px',
+          maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)'
+        }}
+      />
+
       {/* Animated background orbs */}
-      <div ref={orbsRef} className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div ref={orbsRef} className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-[#0A84FF]/5 blur-[120px] animate-breathe" />
         <div className="absolute bottom-1/3 right-1/4 w-[450px] h-[450px] rounded-full bg-[#BF5AF2]/5 blur-[100px] animate-breathe" style={{ animationDelay: '3s' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#FF2D55]/3 blur-[110px] animate-breathe" style={{ animationDelay: '6s' }} />
       </div>
 
-      <div className="relative z-10 text-center max-w-4xl px-6 mx-auto w-full">
-        {/* Logo */}
-        <div className="mb-6 flex justify-center">
-          <div className="w-14 h-14 rounded-2xl glass flex items-center justify-center animate-float">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" opacity="0.4"/>
-              <circle cx="12" cy="12" r="6" stroke="white" strokeWidth="1.5" opacity="0.6"/>
-              <circle cx="12" cy="12" r="2" fill="white" opacity="0.8"/>
-              <line x1="12" y1="2" x2="12" y2="6" stroke="white" strokeWidth="1" opacity="0.3"/>
-              <line x1="12" y1="18" x2="12" y2="22" stroke="white" strokeWidth="1" opacity="0.3"/>
-              <line x1="2" y1="12" x2="6" y2="12" stroke="white" strokeWidth="1" opacity="0.3"/>
-              <line x1="18" y1="12" x2="22" y2="12" stroke="white" strokeWidth="1" opacity="0.3"/>
-            </svg>
-          </div>
+      <div className="relative z-10 text-center max-w-4xl px-6 mx-auto w-full pt-8 [transform-style:preserve-3d]">
+        {/* Hero Logo with 3D Tilt */}
+        <div 
+          ref={logoContainerRef} 
+          className="mb-10 flex justify-center relative [transform-style:preserve-3d]"
+        >
+          <div className="absolute inset-0 bg-white/5 blur-[80px] rounded-full scale-150 animate-pulse [transform:translateZ(-50px)] pointer-events-none" />
+          <img 
+            src="https://img.sanishtech.com/u/bac1f87b288e1e3f814aa882958ae00f.png" 
+            alt="Feelora Logo" 
+            className="w-56 h-56 md:w-[320px] md:h-[320px] object-contain animate-float relative z-10 drop-shadow-[0_0_50px_rgba(255,255,255,0.2)] [transform:translateZ(40px)]"
+          />
         </div>
 
-        <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-[#8E8E93] mb-3 select-none">
+        <p className="text-[11px] font-mono tracking-[0.5em] uppercase text-[#8E8E93] mb-6 select-none opacity-80">
           SPATIAL MUSIC UNIVERSE
         </p>
 
         <h1
           ref={titleRef}
-          className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-3 leading-[1.0] select-none"
+          className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-4 leading-[1.0] select-none font-['SF_Pro_Display',-apple-system,BlinkMacSystemFont,system-ui,sans-serif]"
         >
           Feelora
         </h1>
 
         <p
           ref={subtitleRef}
-          className="text-sm md:text-base text-[#8E8E93] font-light mb-10 leading-relaxed max-w-md mx-auto"
+          className="text-sm md:text-base text-[#8E8E93] font-light mb-12 leading-relaxed max-w-md mx-auto"
         >
-          Link your music libraries and display them side-by-side inside your 3D spatial galaxy.
+          Step inside your 3D music universe. Every song becomes a star in your personal galaxy, ready to be explored from the center.
         </p>
 
         {!showClientIdInput ? (
