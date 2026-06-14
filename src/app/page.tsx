@@ -831,8 +831,8 @@ export default function FeeloraPage() {
 
           {!isFocusMode && (
             <div className="absolute top-6 left-6 right-6 flex justify-between items-center hud-interactive">
-              {/* Logo */}
-              <div className="flex items-center gap-3 select-none">
+              {/* Left: Logo */}
+              <div className="flex items-center gap-3 select-none w-[200px]">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl glass flex items-center justify-center">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -852,12 +852,12 @@ export default function FeeloraPage() {
                 )}
               </div>
 
-              {/* Floating SPA navigation bar */}
-              <NavigationBar />
+              {/* Center: Navigation, Dropdown, Search */}
+              <div className="flex items-center gap-4 justify-center flex-1">
+                <NavigationBar />
+                
+                <div className="w-[1px] h-4 bg-white/10 mx-2" />
 
-              {/* Actions */}
-              <div className="flex items-center gap-3">
-                {/* Sphere Content Selector */}
                 <div className="relative">
                   <select
                     value={sphereSource}
@@ -878,7 +878,6 @@ export default function FeeloraPage() {
                   </div>
                 </div>
 
-                {/* Search trigger */}
                 <button
                   onClick={() => useAppStore.getState().setIsSearchOpen(true)}
                   className="flex items-center gap-2.5 px-4 py-2 rounded-full glass glass-hover text-[11px] font-mono text-[#8E8E93] hover:text-white transition-colors cursor-pointer h-[34px]"
@@ -899,11 +898,13 @@ export default function FeeloraPage() {
                     <span>⌘K</span>
                   </div>
                 </button>
+              </div>
 
-                {/* Logout/Exit Demo */}
+              {/* Right: Disconnect */}
+              <div className="flex justify-end w-[200px]">
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 rounded-full glass glass-hover text-[11px] font-mono text-[#FF375F] hover:text-white hover:bg-[#FF375F]/20 transition-all cursor-pointer"
+                  className="px-5 py-2 rounded-full glass backdrop-blur-xl border border-white/10 bg-black/40 text-[11px] font-mono text-[#FF375F] hover:text-[#ff5c7d] hover:bg-[#FF375F]/15 transition-all cursor-pointer shadow-[0_4px_12px_rgba(255,55,95,0.1)]"
                 >
                   {isDemoMode ? 'Exit Demo' : 'Disconnect'}
                 </button>
