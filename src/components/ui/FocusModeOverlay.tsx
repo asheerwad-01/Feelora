@@ -25,7 +25,12 @@ export function FocusModeOverlay() {
     setIsPlaying,
     spotifyDeviceId,
     isPremium,
-    playbackQueue
+    playbackQueue,
+    allSongs,
+    setCurrentTrack,
+    setFocusedSong,
+    setCameraTarget,
+    setProgress
   } = useAppStore();
 
   const energy = useAudioStore((s) => s.energy);
@@ -153,22 +158,60 @@ export function FocusModeOverlay() {
   };
 
   const handleNext = async () => {
-    if (!currentTrack) return;
-    const isSpotify = !!(currentTrack.isSpotifyTrack && spotifyDeviceId && isPremium);
+    const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+    if (!currentTrack || queue.length === 0) return;
+
+    let nextIndex = 0;
+    const currentIndex = queue.findIndex((s) => s.id === currentTrack.id);
+    if (currentIndex !== -1) {
+      nextIndex = (currentIndex + 1) % queue.length;
+    }
+
+    const nextTrack = queue[nextIndex];
+    setCurrentTrack(nextTrack);
+    setFocusedSong(nextTrack);
+    setCameraTarget(nextTrack.position);
+    setProgress(0);
+
+    const isSpotify = !!(nextTrack.isSpotifyTrack && spotifyDeviceId && isPremium);
     try {
-      await playbackController.next(isSpotify);
-    } catch (error) {
-      console.error('Next track error:', error);
+      await playbackController.play(
+        nextTrack,
+        spotifyDeviceId,
+        isPremium,
+        volume
+      );
+    } catch (err) {
+      console.error('Next track error:', err);
     }
   };
 
   const handlePrev = async () => {
-    if (!currentTrack) return;
-    const isSpotify = !!(currentTrack.isSpotifyTrack && spotifyDeviceId && isPremium);
+    const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+    if (!currentTrack || queue.length === 0) return;
+
+    let prevIndex = queue.length - 1;
+    const currentIndex = queue.findIndex((s) => s.id === currentTrack.id);
+    if (currentIndex !== -1) {
+      prevIndex = (currentIndex - 1 + queue.length) % queue.length;
+    }
+
+    const prevTrack = queue[prevIndex];
+    setCurrentTrack(prevTrack);
+    setFocusedSong(prevTrack);
+    setCameraTarget(prevTrack.position);
+    setProgress(0);
+
+    const isSpotify = !!(prevTrack.isSpotifyTrack && spotifyDeviceId && isPremium);
     try {
-      await playbackController.previous(isSpotify);
-    } catch (error) {
-      console.error('Previous track error:', error);
+      await playbackController.play(
+        prevTrack,
+        spotifyDeviceId,
+        isPremium,
+        volume
+      );
+    } catch (err) {
+      console.error('Previous track error:', err);
     }
   };
 
