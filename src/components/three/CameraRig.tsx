@@ -184,11 +184,11 @@ export function CameraRig() {
     targetRotationY.current += velocityTheta.current;
     targetRotationX.current += velocityPhi.current;
 
-    // Clamp vertical rotation to avoid flipping
+    // Clamp vertical rotation to avoid flipping, but allow looking up/down at the poles
     targetRotationX.current = THREE.MathUtils.clamp(
       targetRotationX.current,
-      -0.7,
-      0.7
+      -1.4,
+      1.4
     );
 
     // Decay velocity (inertia)
