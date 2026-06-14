@@ -862,7 +862,7 @@ export default function FeeloraPage() {
                   <select
                     value={sphereSource}
                     onChange={(e) => setSphereSource(e.target.value)}
-                    className="appearance-none bg-black/50 text-[#8E8E93] hover:text-white border border-white/10 rounded-full pl-4 pr-9 py-2 text-[11px] font-mono hover:bg-black/75 focus:outline-none focus:border-white/25 transition-all cursor-pointer min-w-[130px] max-w-[180px] h-[34px] shadow-sm"
+                    className="appearance-none glass backdrop-blur-xl bg-black/40 text-[#8E8E93] hover:text-white border border-white/10 rounded-full pl-4 pr-9 py-2 text-[11px] font-mono hover:bg-white/5 focus:outline-none focus:border-white/25 transition-all cursor-pointer min-w-[130px] max-w-[180px] h-[34px] shadow-sm"
                   >
                     <option value="all">Sphere: All</option>
                     <option value="liked">Sphere: Liked</option>
@@ -880,7 +880,7 @@ export default function FeeloraPage() {
 
                 <button
                   onClick={() => useAppStore.getState().setIsSearchOpen(true)}
-                  className="flex items-center gap-2.5 px-4 py-2 rounded-full glass glass-hover text-[11px] font-mono text-[#8E8E93] hover:text-white transition-colors cursor-pointer h-[34px]"
+                  className="flex items-center gap-2.5 px-4 py-2 rounded-full glass backdrop-blur-xl border border-white/10 bg-black/40 text-[11px] font-mono text-[#8E8E93] hover:text-white hover:bg-white/5 transition-all cursor-pointer h-[34px]"
                 >
                   <svg
                     width="13"
