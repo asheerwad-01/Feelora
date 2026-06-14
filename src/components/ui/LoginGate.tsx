@@ -144,12 +144,12 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
 
       <div className="relative z-10 text-center max-w-4xl px-6 mx-auto w-full pt-8">
         {/* Hero Logo */}
-        <div className="mb-10 flex justify-center relative">
+        <div className="mb-2 flex justify-center relative">
           <img 
             ref={logoRef}
             src="https://img.sanishtech.com/u/dd127b452bf7e454f3b119c665f70888.png" 
             alt="Feelora Logo" 
-            className="w-64 h-64 md:w-[380px] md:h-[380px] object-cover relative z-10"
+            className="w-64 h-64 md:w-[380px] md:h-[380px] object-cover relative z-10 drop-shadow-[0_0_50px_rgba(255,255,255,0.35)]"
             style={{
               maskImage: 'radial-gradient(circle, black 50%, transparent 100%)',
               WebkitMaskImage: 'radial-gradient(circle, black 50%, transparent 100%)'
@@ -157,26 +157,26 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
           />
         </div>
 
-        <p className="text-[11px] font-mono tracking-[0.5em] uppercase text-[#8E8E93] mb-6 select-none opacity-80">
+        <p className="text-[11px] font-mono tracking-[0.5em] uppercase text-[#8E8E93] mb-2 select-none opacity-80">
           SPATIAL MUSIC UNIVERSE
         </p>
 
         <h1
           ref={titleRef}
-          className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-4 leading-[1.0] select-none font-['SF_Pro_Display',-apple-system,BlinkMacSystemFont,system-ui,sans-serif]"
+          className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-2 leading-[1.0] select-none font-['SF_Pro_Display',-apple-system,BlinkMacSystemFont,system-ui,sans-serif]"
         >
           Feelora
         </h1>
 
         <p
           ref={subtitleRef}
-          className="text-sm md:text-base text-[#8E8E93] font-light mb-12 leading-relaxed max-w-md mx-auto"
+          className="text-sm md:text-base text-[#8E8E93] font-light mb-6 leading-relaxed max-w-md mx-auto"
         >
           Step inside your 3D music universe. Every song becomes a star in your personal galaxy, ready to be explored from the center.
         </p>
 
         {!showClientIdInput ? (
-          <div ref={dashboardRef} className="flex flex-col items-center gap-5 mt-12 max-w-[280px] mx-auto w-full">
+          <div ref={dashboardRef} className="flex flex-col items-center gap-5 mt-6 max-w-[280px] mx-auto w-full">
             
             <button
               onClick={handleConnectSpotify}
