@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="./public/Feelora Branding.png" alt="Feelora Logo" width="360" />
+  <img src="./public/Feelora Branding.png" alt="Feelora Logo" width="540" />
 </p>
 
-<h1 align="center">🎵 Feelora</h1>
+<!-- <h1 align="center">🎵 Feelora</h1> -->
 
-<p align="center">
+<!-- <p align="center">
   <strong>Don't listen to music. Step inside it.</strong>
-</p>
+</p> -->
 # 🎵 Feelora
 
 > **Don't listen to music. Step inside it.**
