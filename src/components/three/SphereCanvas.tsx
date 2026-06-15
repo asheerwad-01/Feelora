@@ -56,7 +56,7 @@ export function SphereCanvas() {
           <CameraRig />
 
           {/* Post-processing pipeline */}
-          <EffectComposer multisampling={0}>
+          <EffectComposer multisampling={8}>
             <Bloom
               intensity={bloomIntensity}
               luminanceThreshold={0.3}

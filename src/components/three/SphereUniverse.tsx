@@ -235,8 +235,7 @@ export function SphereUniverse() {
       const frontMaterial = new THREE.MeshBasicMaterial({
         map: fallbackTexture,
         toneMapped: true,
-        transparent: true,
-        opacity: 0.88,
+        transparent: false,
       });
 
       const materials = [
