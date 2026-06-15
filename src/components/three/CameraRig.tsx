@@ -163,7 +163,7 @@ export function CameraRig() {
   const onWheel = useCallback((e: WheelEvent) => {
     // Scroll zoom: deltaY > 0 scroll down (zoom out), deltaY < 0 scroll up (zoom in)
     targetFov.current += e.deltaY * 0.05;
-    targetFov.current = THREE.MathUtils.clamp(targetFov.current, 25, 85);
+    targetFov.current = THREE.MathUtils.clamp(targetFov.current, 8, 120);
   }, []);
 
   // Register event listeners
