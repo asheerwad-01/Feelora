@@ -162,5 +162,5 @@ It helps the project grow and motivates future development.
 ---
 
 <p align="center">
-  Made with ❤️ and 🎵 by The Architects
+  Made with ❤️ and 🎵 by Asheerwad
 </p>

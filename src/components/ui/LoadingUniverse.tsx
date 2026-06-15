@@ -91,7 +91,7 @@ export function LoadingUniverse() {
         {/* Static Logo */}
         <div className="relative w-32 h-32 mx-auto mb-8">
           <img 
-            src="https://img.sanishtech.com/u/8de7d55f39754063df8be4065a78de00.png" 
+            src="https://i.postimg.cc/QMNDQ8pk/Feelora-Monochrome.png" 
             alt="Feelora Loading Logo" 
             className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]"
           />

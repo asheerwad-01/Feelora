@@ -147,7 +147,7 @@ export function LoginGate({ onEnterDemo }: { onEnterDemo: () => void }) {
         <div className="mb-2 flex justify-center relative">
           <img 
             ref={logoRef}
-            src="https://img.sanishtech.com/u/dd127b452bf7e454f3b119c665f70888.png" 
+            src="https://i.postimg.cc/pdC7RKhg/Feelora.png" 
             alt="Feelora Logo" 
             className="w-64 h-64 md:w-[380px] md:h-[380px] object-cover relative z-10 drop-shadow-[0_0_50px_rgba(255,255,255,0.35)]"
             style={{

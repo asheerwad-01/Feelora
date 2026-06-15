@@ -840,7 +840,7 @@ export default function FeeloraPage() {
               {/* Left: Logo */}
               <div className="flex items-center gap-3 select-none w-[200px]">
                 <div className="flex items-center gap-2.5">
-                  <img src="https://img.sanishtech.com/u/70f54405d87620b39d258e66fa21e321.png" alt="Feelora" className="w-9 h-9 object-contain" />
+                  <img src="https://i.postimg.cc/N0C3R1s6/Feelora-Icon.png" alt="Feelora" className="w-9 h-9 object-contain" />
                   <span className="text-[12px] font-mono tracking-[0.3em] uppercase font-bold text-white/70">
                     FEELORA
                   </span>
