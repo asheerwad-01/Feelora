@@ -12,12 +12,14 @@ import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
+import { useAppStore } from '@/store/useAppStore';
 import { SphereUniverse } from './SphereUniverse';
 import { CameraRig } from './CameraRig';
 import { EnvironmentEffects } from './EnvironmentEffects';
 
 export function SphereCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bloomIntensity = useAppStore((state) => state.bloomIntensity);
 
   return (
     <div className="canvas-container">
@@ -56,7 +58,7 @@ export function SphereCanvas() {
           {/* Post-processing pipeline */}
           <EffectComposer multisampling={0}>
             <Bloom
-              intensity={0.8}
+              intensity={bloomIntensity}
               luminanceThreshold={0.3}
               luminanceSmoothing={0.9}
               mipmapBlur

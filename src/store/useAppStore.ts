@@ -72,6 +72,10 @@ interface AppState {
   setIsFocusMode: (val: boolean) => void;
   setIsLoading: (val: boolean) => void;
   setLoadingMessage: (msg: string) => void;
+
+  /* ── Bloom Control ── */
+  bloomIntensity: number;
+  setBloomIntensity: (val: number) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -145,4 +149,8 @@ export const useAppStore = create<AppState>((set) => ({
   setIsFocusMode: (val) => set({ isFocusMode: val }),
   setIsLoading: (val) => set({ isLoading: val }),
   setLoadingMessage: (msg) => set({ loadingMessage: msg }),
+
+  /* ── Bloom Control ── */
+  bloomIntensity: 0.8,
+  setBloomIntensity: (val) => set({ bloomIntensity: val }),
 }));

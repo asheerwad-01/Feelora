@@ -19,10 +19,12 @@ export function EnvironmentEffects() {
 
   const ambientRef = useRef<THREE.AmbientLight>(null);
   const pointLightRef = useRef<THREE.PointLight>(null);
-  const accentColor = useRef(new THREE.Color('#0A84FF'));
+  const accentColor = useRef(new THREE.Color('#101018'));
 
-  // Update accent color from current track
-  useFrame(() => {
+  // Update accent color and ambient background spheres
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+
     if (currentTrack?.accentColor) {
       accentColor.current.lerp(
         new THREE.Color(currentTrack.accentColor),
@@ -30,14 +32,14 @@ export function EnvironmentEffects() {
       );
     }
 
-    // Audio-reactive lighting
+    // Audio-reactive lighting (always clean white)
     if (pointLightRef.current) {
       pointLightRef.current.intensity = 3.0 + energy * 4;
-      pointLightRef.current.color.copy(accentColor.current);
+      pointLightRef.current.color.set('#ffffff');
     }
 
     if (ambientRef.current) {
-      ambientRef.current.intensity = isFocusMode ? 0.1 : 0.18 + energy * 0.1;
+      ambientRef.current.intensity = isFocusMode ? 0.12 : 0.28 + energy * 0.12;
     }
   });
 
@@ -47,7 +49,7 @@ export function EnvironmentEffects() {
       <fog attach="fog" args={['#040406', 5, 25]} />
 
       {/* Ambient fill light */}
-      <ambientLight ref={ambientRef} intensity={0.18} color="#ffffff" />
+      <ambientLight ref={ambientRef} intensity={0.28} color="#ffffff" />
 
       {/* Central point light — white/accent tinted */}
       <pointLight

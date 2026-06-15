@@ -2,20 +2,18 @@
 
 // ─────────────────────────────────────────────────────────────
 // Feelora 2 — Sphere Universe
-// Renders all songs as individual card meshes tightly packed on
-// a sphere surface surrounding the viewer (planetarium style).
-// Uses individual meshes (not instanced) for maximum reliability,
-// following the exact approach from the reference SphericalGallery.
+// Renders all songs as individual thin 3D card boxes tightly packed on
+// a sphere surface. Reacts to lighting dynamically as it floats.
 // ─────────────────────────────────────────────────────────────
 
-import { useRef, useMemo, useEffect, useState } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import gsap from 'gsap';
 
 import { useAppStore } from '@/store/useAppStore';
 import { useAudioStore } from '@/store/useAudioStore';
 import type { SpatialTrack } from '@/types';
+import { MicroUIElements } from './MicroUIElements';
 
 // Sphere config
 const SPHERE_RADIUS = 7.0;
@@ -27,7 +25,7 @@ const TARGET_COUNT = ROWS * CARDS_PER_ROW; // 1012
 const V_MIN = Math.PI * 0.12;
 const V_MAX = Math.PI * 0.88;
 
-// ─── Fallback texture generator (matching reference) ───
+// ─── Fallback texture generator ───
 
 function createFallbackTexture(
   title: string,
@@ -109,6 +107,7 @@ export function SphereUniverse() {
   const groupRef = useRef<THREE.Group>(null);
   const cardsGroupRef = useRef<THREE.Group>(null);
   const meshesRef = useRef<THREE.Mesh[]>([]);
+  const hoveredMeshRef = useRef<THREE.Mesh | null>(null);
   const pointerStart = useRef({ x: 0, y: 0 }); // Track start of pointer click/drag
   const textureLoader = useMemo(() => {
     const loader = new THREE.TextureLoader();
@@ -131,6 +130,13 @@ export function SphereUniverse() {
     setCameraTarget(null);
   }, [sphereSource, setFocusedSong, setCameraTarget]);
 
+  // Clean up cursor style on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = 'default';
+    };
+  }, []);
+
   // Build the card meshes when songs change
   useEffect(() => {
     if (!cardsGroupRef.current) return;
@@ -141,18 +147,28 @@ export function SphereUniverse() {
     while (cardsGroup.children.length > 0) {
       const child = cardsGroup.children[0] as THREE.Mesh;
       if (child.geometry) child.geometry.dispose();
+      
+      // Dispose materials array
       if (child.material) {
-        const mat = child.material as THREE.MeshBasicMaterial;
-        if (mat.map) mat.map.dispose();
-        mat.dispose();
+        if (Array.isArray(child.material)) {
+          child.material.forEach((mat: any) => {
+            if (mat.map) mat.map.dispose();
+            mat.dispose();
+          });
+        } else {
+          const mat = child.material as any;
+          if (mat.map) mat.map.dispose();
+          mat.dispose();
+        }
       }
       cardsGroup.remove(child);
     }
     meshesRef.current = [];
+    hoveredMeshRef.current = null;
 
     if (filteredSongs.length === 0) return;
 
-    console.log('[SphereUniverse] Building', filteredSongs.length, 'card meshes');
+    console.log('[SphereUniverse] Building', filteredSongs.length, '3D card meshes');
 
     // Replicate tracks to fill the sphere if needed (like reference)
     const denseTracks: SpatialTrack[] = [];
@@ -190,17 +206,18 @@ export function SphereUniverse() {
       // Calculate seamless width for this latitude
       const latCircumference = 2 * Math.PI * SPHERE_RADIUS * Math.sin(theta);
       const exactCellWidth = latCircumference / CARDS_PER_ROW;
-      const itemWidth = Math.max(0.15, exactCellWidth - 0.015);
+      // Spacing (gaps) factor of 0.82 leaves clean margins
+      const itemWidth = Math.max(0.15, exactCellWidth * 0.82);
 
       // Calculate seamless height
       const sphereSpanHeight = SPHERE_RADIUS * (V_MAX - V_MIN);
       const exactCellHeight = sphereSpanHeight / (ROWS - 1);
-      const itemHeight = exactCellHeight - 0.015;
+      const itemHeight = exactCellHeight * 0.82;
 
-      // Create geometry for this card
-      const geometry = new THREE.PlaneGeometry(itemWidth, itemHeight, 1, 1);
+      // Create a thin 3D box geometry instead of a flat plane (thickness = 0.02)
+      const geometry = new THREE.BoxGeometry(itemWidth, itemHeight, 0.02);
 
-      // Create fallback texture
+      // Create fallback cover texture
       const fallbackTexture = createFallbackTexture(
         track.title,
         track.artist,
@@ -208,13 +225,28 @@ export function SphereUniverse() {
         track.provider
       );
 
-      const material = new THREE.MeshBasicMaterial({
+      // Materials for the box: index 4 is the front face (+Z), other faces are dark composite backing
+      const backMaterial = new THREE.MeshStandardMaterial({
+        color: 0x16161a,
+        roughness: 0.5,
+        metalness: 0.25,
+      });
+
+      const frontMaterial = new THREE.MeshBasicMaterial({
         map: fallbackTexture,
-        side: THREE.DoubleSide,
+        toneMapped: true,
         transparent: true,
         opacity: 0.88,
-        toneMapped: true,
       });
+
+      const materials = [
+        backMaterial, // Right (+X)
+        backMaterial, // Left (-X)
+        backMaterial, // Top (+Y)
+        backMaterial, // Bottom (-Y)
+        frontMaterial, // Front (+Z) — Shows the cover art
+        backMaterial, // Back (-Z)
+      ];
 
       // Load real cover if available
       if (track.coverUrl) {
@@ -223,8 +255,8 @@ export function SphereUniverse() {
             track.coverUrl,
             (tex) => {
               tex.colorSpace = THREE.SRGBColorSpace;
-              material.map = tex;
-              material.needsUpdate = true;
+              frontMaterial.map = tex;
+              frontMaterial.needsUpdate = true;
             },
             undefined,
             () => {
@@ -236,22 +268,91 @@ export function SphereUniverse() {
         }
       }
 
-      const mesh = new THREE.Mesh(geometry, material);
+      const mesh = new THREE.Mesh(geometry, materials);
       mesh.position.set(x, y, z);
 
       // Face inward toward camera at origin
       mesh.lookAt(0, 0, 0);
 
-      mesh.userData = { track, index, defaultScale: 1 };
+      mesh.userData = {
+        track,
+        index,
+        basePosition: new THREE.Vector3(x, y, z),
+        baseRotation: mesh.rotation.clone(),
+        normal: new THREE.Vector3(x, y, z).clone().normalize(),
+      };
+
+      // Create a slightly larger back-plane outline glow that appears on hover
+      const glowGeo = new THREE.PlaneGeometry(itemWidth * 1.08, itemHeight * 1.08);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(track.accentColor).multiplyScalar(1.6),
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+      glowMesh.position.set(0, 0, -0.015); // Place slightly behind the card front
+      glowMesh.name = 'hoverGlow';
+      mesh.add(glowMesh);
+      
       cardsGroup.add(mesh);
       cardMeshes.push(mesh);
     });
 
     meshesRef.current = cardMeshes;
-    console.log('[SphereUniverse] Built', cardMeshes.length, 'card meshes. Radius:', SPHERE_RADIUS);
+    console.log('[SphereUniverse] Built', cardMeshes.length, '3D card meshes. Radius:', SPHERE_RADIUS);
   }, [filteredSongs, textureLoader]);
 
+  // Frame animation loop for floating, wobble, and smooth hover/audio reactive scaling
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+    const meshes = meshesRef.current;
+    const len = meshes.length;
 
+    for (let i = 0; i < len; i++) {
+      const mesh = meshes[i];
+      const { basePosition, baseRotation, normal, index } = mesh.userData;
+      if (!basePosition) continue;
+
+      // 1. Floating translation (slightly faster, dynamic drift)
+      const phase = index * 0.15;
+      const speed = 0.65;
+      
+      const rOffset = Math.sin(time * speed + phase) * 0.075;
+      const yOffset = Math.cos(time * 0.75 * speed + phase * 1.3) * 0.06;
+      const xOffset = Math.sin(time * 0.55 * speed + phase * 0.8) * 0.05;
+
+      mesh.position.copy(basePosition).addScaledVector(normal, rOffset);
+      mesh.position.y += yOffset;
+      mesh.position.x += xOffset;
+
+      // 2. Wobble rotation (organic tilt angles displaying 3D depth)
+      const wobbleX = Math.sin(time * 0.25 * speed + phase * 1.1) * 0.025;
+      const wobbleY = Math.cos(time * 0.2 * speed + phase * 0.7) * 0.025;
+      const wobbleZ = Math.sin(time * 0.15 * speed + phase * 1.5) * 0.015;
+
+      mesh.rotation.x = baseRotation.x + wobbleX;
+      mesh.rotation.y = baseRotation.y + wobbleY;
+      mesh.rotation.z = baseRotation.z + wobbleZ;
+
+      // 3. Smooth hover scale (no audio reactive pulsing)
+      const isHovered = hoveredMeshRef.current === mesh;
+      const finalScaleTarget = isHovered ? 1.22 : 1.0;
+
+      mesh.scale.x = THREE.MathUtils.lerp(mesh.scale.x, finalScaleTarget, 0.1);
+      mesh.scale.y = THREE.MathUtils.lerp(mesh.scale.y, finalScaleTarget, 0.1);
+      mesh.scale.z = THREE.MathUtils.lerp(mesh.scale.z, finalScaleTarget, 0.1);
+
+      // 4. Accent glow outline hover lerp
+      const glowMesh = mesh.getObjectByName('hoverGlow') as THREE.Mesh;
+      if (glowMesh) {
+        const glowMat = glowMesh.material as THREE.MeshBasicMaterial;
+        const targetOpacity = isHovered ? 0.95 : 0.0;
+        glowMat.opacity = THREE.MathUtils.lerp(glowMat.opacity, targetOpacity, 0.15);
+      }
+    }
+  });
 
   // Handle click on cards via raycasting
   const handlePointerDown = (e: any) => {
@@ -281,14 +382,44 @@ export function SphereUniverse() {
     setCameraTarget([worldPos.x, worldPos.y, worldPos.z]);
   };
 
+  // Hover handlers for smooth cursor indicator and hover tracking
+  const handlePointerMove = (e: any) => {
+    e.stopPropagation();
+    const intersected = e.object as THREE.Mesh;
+    if (intersected && intersected.userData && intersected.userData.track) {
+      if (hoveredMeshRef.current !== intersected) {
+        hoveredMeshRef.current = intersected;
+        document.body.style.cursor = 'pointer';
+      }
+    } else {
+      clearHover();
+    }
+  };
+
+  const handlePointerOut = (e: any) => {
+    clearHover();
+  };
+
+  const clearHover = () => {
+    if (hoveredMeshRef.current) {
+      document.body.style.cursor = 'default';
+      hoveredMeshRef.current = null;
+    }
+  };
+
   if (filteredSongs.length === 0) return null;
 
   return (
     <group ref={groupRef}>
+      {/* Background Micro UI Elements (r=8.5) */}
+      <MicroUIElements />
+
       <group
         ref={cardsGroupRef}
         onClick={handleClick}
         onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerOut={handlePointerOut}
       />
     </group>
   );

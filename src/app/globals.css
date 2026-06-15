@@ -151,6 +151,17 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
+/* ── Vertical Range Slider overriding standard input[type="range"] ── */
+input[type="range"].vertical-range {
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  writing-mode: vertical-lr;
+  width: 4px !important;
+  height: 100px !important;
+  padding: 0;
+  margin: 0;
+}
+
 /* ── Animations ── */
 @keyframes breathe {
   0%, 100% { opacity: 0.3; transform: scale(1); }

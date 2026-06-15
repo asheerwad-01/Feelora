@@ -170,6 +170,8 @@ export default function FeeloraPage() {
     setHasLaunchedUniverse,
     playbackQueue,
     setPlaybackQueue,
+    bloomIntensity,
+    setBloomIntensity,
   } = useAppStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -785,6 +787,49 @@ export default function FeeloraPage() {
       {/* Focus Mode Overlay */}
       <FocusModeOverlay />
 
+      {/* Bloom control slider - Always visible & horizontal near Feelora branding */}
+      {hasLaunchedUniverse && !isLoading && (
+        <div className="fixed top-[24px] left-[236px] z-[60] pointer-events-auto">
+          <div className="glass backdrop-blur-3xl bg-black/60 border border-white/15 rounded-full px-3.5 py-1.5 flex items-center gap-3 select-none h-[36px] shadow-[0_8px_32px_rgba(0,0,0,0.6)] hover:border-white/25 transition-all duration-300">
+            {/* Sun icon */}
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              className="text-white/70"
+            >
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+            <span className="text-[9px] font-mono text-[#8E8E93] tracking-wider uppercase font-medium">
+              Bloom
+            </span>
+            <input
+              type="range"
+              min="0"
+              max="2"
+              step="0.05"
+              value={bloomIntensity}
+              onChange={(e) => setBloomIntensity(parseFloat(e.target.value))}
+              className="w-20 cursor-pointer accent-white"
+            />
+            <span className="text-[9px] font-mono text-white/80 font-bold min-w-[24px] text-right">
+              {bloomIntensity.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* HUD Layer */}
       {hasLaunchedUniverse && !isLoading && (
         <div className="hud-layer">
@@ -878,6 +923,8 @@ export default function FeeloraPage() {
               </div>
             </div>
           )}
+
+
 
           {/* Discover Sidebar Overlay */}
           {!isFocusMode && <DiscoverPanel />}
