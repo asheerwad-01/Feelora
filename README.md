@@ -1,3 +1,12 @@
+<p align="center">
+  <img src="./public/Feelora Branding.png" alt="Feelora Logo" width="360" />
+</p>
+
+<h1 align="center">🎵 Feelora</h1>
+
+<p align="center">
+  <strong>Don't listen to music. Step inside it.</strong>
+</p>
 # 🎵 Feelora
 
 > **Don't listen to music. Step inside it.**
