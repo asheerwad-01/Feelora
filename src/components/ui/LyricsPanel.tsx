@@ -2,7 +2,8 @@
 
 // ─────────────────────────────────────────────────────────────
 // Feelora 2 — Lyrics Panel
-// Cinematic synchronized lyrics experience
+// Toggleable frosted glass lyrics panel positioned above the
+// NowPlayingHUD, matching its width and centered alignment
 // ─────────────────────────────────────────────────────────────
 
 import { useRef, useEffect, useState, useMemo } from 'react';
@@ -21,7 +22,6 @@ export function LyricsPanel() {
     isLyricsOpen,
     setIsLyricsOpen,
     isFocusMode,
-    setIsFocusMode,
     spotifyDeviceId,
     isPremium,
   } = useAppStore();
@@ -65,7 +65,6 @@ export function LyricsPanel() {
   // Find current lyric line
   const currentLineIndex = useMemo(() => {
     if (!lyrics || !lyrics.lines.length) return -1;
-
     let idx = -1;
     for (let i = 0; i < lyrics.lines.length; i++) {
       if (lyrics.lines[i].time <= progress) {
@@ -85,7 +84,6 @@ export function LyricsPanel() {
       const containerHeight = container.clientHeight;
       const lineTop = line.offsetTop;
       const lineHeight = line.clientHeight;
-
       const targetScroll = lineTop - containerHeight / 3 + lineHeight / 2;
 
       gsap.to(container, {
@@ -96,74 +94,66 @@ export function LyricsPanel() {
     }
   }, [currentLineIndex]);
 
-  // Panel entrance
+  // Panel entrance animation
   useEffect(() => {
     if (isLyricsOpen && panelRef.current) {
-      if (isFocusMode) {
-        gsap.fromTo(
-          panelRef.current,
-          { scale: 0.95, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.5, ease: 'power3.out' }
-        );
-      } else {
-        gsap.fromTo(
-          panelRef.current,
-          { y: 30, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }
-        );
-      }
+      gsap.fromTo(
+        panelRef.current,
+        { y: 20, opacity: 0, scale: 0.97 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: 'power3.out' }
+      );
     }
-  }, [isLyricsOpen, isFocusMode]);
+  }, [isLyricsOpen]);
 
+  // Don't render in focus mode (FocusModeOverlay has its own lyrics)
   if (!isLyricsOpen || isFocusMode) return null;
 
   return (
     <div
-      className={`fixed z-30 ${
-        isFocusMode
-          ? 'inset-0 flex items-center justify-center pointer-events-none'
-          : 'bottom-[280px] md:bottom-[290px] w-[95vw] md:w-[520px] max-w-[620px] h-[420px] hud-interactive'
-      }`}
-      style={isFocusMode ? undefined : { left: '50%', transform: 'translateX(-50%)' }}
+      className="fixed z-30 hud-interactive"
+      style={{
+        left: '50%',
+        transform: 'translateX(-50%)',
+        bottom: '225px',
+        width: 'min(95vw, 520px)',
+        maxWidth: '620px',
+      }}
     >
-
-
       <div
         ref={panelRef}
-        className={`relative bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden flex flex-col pointer-events-auto ${
-          isFocusMode
-            ? 'w-[600px] h-[70vh] max-w-[90vw]'
-            : 'h-full'
-        }`}
+        className="relative flex flex-col overflow-hidden rounded-2xl border border-white/10 shadow-[0_8px_48px_rgba(0,0,0,0.7)]"
+        style={{
+          maxHeight: '440px',
+          background: 'rgba(12, 12, 18, 0.55)',
+          backdropFilter: 'blur(40px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(40px) saturate(1.4)',
+        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             {currentTrack?.coverUrl && (
               <img
                 src={currentTrack.coverUrl}
                 alt=""
-                className="w-8 h-8 rounded-lg object-cover"
+                className="w-7 h-7 rounded-md object-cover shrink-0"
                 crossOrigin="anonymous"
               />
             )}
-            <div>
-              <p className="text-[10px] font-mono text-[#8E8E93] uppercase tracking-widest">
+            <div className="min-w-0">
+              <p className="text-[8px] font-mono text-[#8E8E93] uppercase tracking-[0.2em] leading-tight">
                 {lyrics?.synced ? 'SYNCED LYRICS' : 'LYRICS'}
               </p>
-              <p className="text-xs text-white/60 truncate max-w-[200px]">
+              <p className="text-[11px] text-white/60 truncate mt-0.5 max-w-[200px]">
                 {currentTrack?.title}
               </p>
             </div>
           </div>
           <button
-            onClick={() => {
-              setIsLyricsOpen(false);
-              setIsFocusMode(false);
-            }}
-            className="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors cursor-pointer"
+            onClick={() => setIsLyricsOpen(false)}
+            className="w-6 h-6 rounded-full hover:bg-white/5 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors cursor-pointer shrink-0"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -173,68 +163,55 @@ export function LyricsPanel() {
         {/* Lyrics body */}
         <div
           ref={linesContainerRef}
-          className={`flex-1 overflow-y-auto px-6 scroll-smooth ${
-            isFocusMode ? 'py-8' : 'py-4'
-          }`}
+          className="flex-1 overflow-y-auto px-6 py-4 scroll-smooth overflow-x-hidden"
+          style={{
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
+          }}
         >
           {isLoading && (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-sm text-[#48484A] font-mono animate-pulse">
+            <div className="flex items-center justify-center h-24">
+              <p className="text-xs text-[#48484A] font-mono animate-pulse">
                 Finding lyrics...
               </p>
             </div>
           )}
 
           {!isLoading && (!lyrics || lyrics.lines.length === 0) && (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center h-24">
               <div className="text-center">
-                <p className="text-sm text-[#48484A]">
-                  No lyrics available
-                </p>
-                <p className="text-[10px] text-[#2C2C2E] mt-2 font-mono">
-                  {lyrics?.source || ''}
-                </p>
+                <p className="text-xs text-[#48484A]">No lyrics available</p>
+                <p className="text-[9px] text-[#2C2C2E] mt-1.5 font-mono">{lyrics?.source || ''}</p>
               </div>
             </div>
           )}
 
           {!isLoading && lyrics && lyrics.lines.length > 0 && (
-            <div className={`space-y-4 ${isFocusMode ? 'pb-32' : 'pb-16'}`}>
+            <div className="space-y-4.5 pt-16 pb-24 px-2">
               {lyrics.lines.map((line, i) => {
                 const isCurrent = i === currentLineIndex;
                 const isPast = i < currentLineIndex;
-                const isUpcoming = i > currentLineIndex;
 
                 return (
                   <div
                     key={i}
                     ref={isCurrent ? currentLineRef : null}
                     onClick={() => handleLineClick(line.time)}
-                    className="transition-all duration-500 cursor-pointer hover:scale-[1.02] active:scale-[0.98] select-none"
+                    className="transition-all duration-500 cursor-pointer hover:scale-[1.01] active:scale-[0.99] select-none"
                     style={{
-                      opacity: isCurrent ? 1 : isPast ? 0.2 : 0.4,
-                      transform: isCurrent
-                        ? 'scale(1)'
-                        : isPast
-                        ? 'scale(0.95) translateY(-2px)'
-                        : 'scale(0.95)',
+                      opacity: isCurrent ? 1 : isPast ? 0.22 : 0.45,
+                      transform: isCurrent ? 'scale(1)' : 'scale(0.97)',
                     }}
                   >
                     <p
-                      className={`text-center transition-all duration-500 leading-relaxed ${
-                        isFocusMode
-                          ? isCurrent
-                            ? 'text-3xl font-bold text-white'
-                            : 'text-xl font-light text-white/40'
-                          : isCurrent
-                          ? 'text-xl font-semibold text-white'
-                          : 'text-base font-light text-white/50'
+                      className={`text-center transition-all duration-500 leading-relaxed break-words overflow-x-hidden px-4 ${
+                        isCurrent
+                          ? 'text-[18px] md:text-[22px] font-semibold text-white'
+                          : 'text-[13px] md:text-[16px] font-medium text-white/40'
                       }`}
                       style={
                         isCurrent && currentTrack
-                          ? {
-                              textShadow: `0 0 30px ${currentTrack.accentColor}30`,
-                            }
+                          ? { textShadow: `0 0 20px ${currentTrack.accentColor}35` }
                           : undefined
                       }
                     >
@@ -249,8 +226,8 @@ export function LyricsPanel() {
 
         {/* Source attribution */}
         {lyrics?.source && lyrics.source !== 'unavailable' && (
-          <div className="px-5 py-2 border-t border-white/5 shrink-0">
-            <p className="text-[8px] font-mono text-[#2C2C2E] text-right">
+          <div className="px-4 py-1.5 border-t border-white/5 shrink-0">
+            <p className="text-[7px] font-mono text-[#2C2C2E] text-right">
               via {lyrics.source}
             </p>
           </div>

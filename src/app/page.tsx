@@ -28,6 +28,9 @@ import { LoadingUniverse } from '@/components/ui/LoadingUniverse';
 import { NavigationBar } from '@/components/ui/NavigationBar';
 import { DiscoverPanel } from '@/components/ui/DiscoverPanel';
 import { LibraryPanel } from '@/components/ui/LibraryPanel';
+import { CategoryBar } from '@/components/ui/CategoryBar';
+import { GenreModal } from '@/components/ui/GenreModal';
+import { SpatialControls } from '@/components/ui/SpatialControls';
 
 // Dynamic import for Three.js canvas (client-only, no SSR)
 const SphereCanvas = dynamic(
@@ -140,6 +143,7 @@ export default function FeeloraPage() {
     setUserProfile,
     allSongs,
     setAllSongs,
+    setLibrarySongs,
     playlists,
     setPlaylists,
     setIsLoading,
@@ -172,12 +176,15 @@ export default function FeeloraPage() {
     setPlaybackQueue,
     bloomIntensity,
     setBloomIntensity,
+    isLyricsOpen,
   } = useAppStore();
 
   const [hydrated, setHydrated] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncingPlaylist, setSyncingPlaylist] = useState('');
+  const [isPlaylistLoading, setIsPlaylistLoading] = useState(false);
+  const [playlistLoadingName, setPlaylistLoadingName] = useState('');
   const [diagInfo, setDiagInfo] = useState({
     status: 'Disconnected',
     playlistsCount: 0,
@@ -247,12 +254,13 @@ export default function FeeloraPage() {
 
         const sources = [
           { tracks: likedTracks, source: 'Liked Songs' },
-          { tracks: playlist1Tracks, source: 'Coding Vibes' },
-          { tracks: playlist2Tracks, source: 'Late Night Jazz' },
-          { tracks: otherTracks, source: 'Ambient Space' },
+          { tracks: playlist1Tracks, source: 'demo-pl-1' },
+          { tracks: playlist2Tracks, source: 'demo-pl-2' },
+          { tracks: otherTracks, source: 'demo-pl-3' },
         ];
-        const spatialTracks = mergeAndDistribute(sources, 7);
+        const spatialTracks = mergeAndDistribute(sources, 7.5);
         setAllSongs(spatialTracks);
+        setLibrarySongs(spatialTracks);
         
         const mockPlaylists: SpotifyPlaylist[] = [
           { id: 'demo-pl-1', name: 'Coding Vibes', description: 'Focus beats', uri: '', owner: { display_name: 'Feelora' }, tracks: { total: 50 } },
@@ -313,6 +321,7 @@ export default function FeeloraPage() {
 
       try {
         let spotifyTracks: Track[] = [];
+        let userPlaylists: SpotifyPlaylist[] = [];
 
         let unsubReady: (() => void) | null = null;
         let unsubNotReady: (() => void) | null = null;
@@ -422,6 +431,15 @@ export default function FeeloraPage() {
             } catch (err) {
               console.warn('[Feelora] Spotify liked songs fetch failed:', err);
             }
+
+            // Playlists
+            try {
+              setLoadingMessage('Loading Spotify playlists...');
+              userPlaylists = await spotifyApi.getUserPlaylists();
+              if (active) setPlaylists(userPlaylists);
+            } catch (err) {
+              console.warn('[Feelora] Spotify playlists fetch failed:', err);
+            }
           }
         }
 
@@ -436,7 +454,15 @@ export default function FeeloraPage() {
             initialSources.push({ tracks: spotifyTracks, source: 'Liked Songs' });
           }
 
-          let spatialTracks = mergeAndDistribute(initialSources, 7);
+          // Add loaded playlists
+          userPlaylists.forEach(pl => {
+            const tracks = playlistTracksRef.current[pl.id] || [];
+            if (tracks.length > 0) {
+              initialSources.push({ tracks, source: pl.id });
+            }
+          });
+
+          let spatialTracks = mergeAndDistribute(initialSources, 7.5);
 
           if (spatialTracks.length === 0) {
             console.log('[Feelora] No services returned tracks, generating demo fallback.');
@@ -444,12 +470,12 @@ export default function FeeloraPage() {
             spatialTracks = mergeAndDistribute([
               { tracks: mockTracks.slice(0, 100), source: 'Liked Songs' },
               { tracks: mockTracks.slice(100), source: 'Ambient Space' }
-            ], 7);
+            ], 7.5);
           }
 
           setAllSongs(spatialTracks);
+          setLibrarySongs(spatialTracks);
           setSphereSource('all');
-          setPlaylists([]); // clear playlists on multi-service mode to avoid API poll
           setIsLoading(false);
         }
 
@@ -572,7 +598,6 @@ export default function FeeloraPage() {
         const nextTrack = queue[nextIndex];
         setCurrentTrack(nextTrack);
         setFocusedSong(nextTrack);
-        setCameraTarget(nextTrack.position);
         setProgress(0);
 
         try {
@@ -596,7 +621,6 @@ export default function FeeloraPage() {
         const prevTrack = queue[prevIndex];
         setCurrentTrack(prevTrack);
         setFocusedSong(prevTrack);
-        setCameraTarget(prevTrack.position);
         setProgress(0);
 
         try {
@@ -633,44 +657,45 @@ export default function FeeloraPage() {
     const isDemo = localStorage.getItem('feelora_demo_mode') === 'true';
     if (isDemo) return;
 
-    if (sphereSource !== 'all' && sphereSource !== 'liked') {
+    if (sphereSource !== 'all' && sphereSource !== 'liked' && sphereSource !== 'Spotify') {
       // Single playlist selection
-      const pl = playlists.find((p) => p.name === sphereSource);
+      const pl = playlists.find((p) => p.id === sphereSource);
       if (pl && !playlistTracksRef.current[pl.id]) {
         // Not loaded yet! Load immediately on demand
-        setIsLoading(true);
-        setLoadingMessage(`Loading ${pl.name} immediately...`);
+        setIsPlaylistLoading(true);
+        setPlaylistLoadingName(pl.name);
         
         spotifyApi.getPlaylistTracks(pl.id, 50).then((tracks) => {
           playlistTracksRef.current[pl.id] = tracks;
           // Rebuild the sphere
           const updatedSources = [
+            { tracks: likedSongsRef.current, source: 'Spotify' },
             { tracks: likedSongsRef.current, source: 'Liked Songs' },
             ...playlists.map(p => ({
               tracks: playlistTracksRef.current[p.id] || [],
-              source: p.name
+              source: p.id
             })).filter(s => s.tracks.length > 0)
           ];
-          const newSpatialTracks = mergeAndDistribute(updatedSources, 7);
+          const newSpatialTracks = mergeAndDistribute(updatedSources, 7.5);
           setAllSongs(newSpatialTracks);
+          setLibrarySongs(newSpatialTracks);
         }).catch((err) => {
           console.warn(`[Feelora] Failed to fetch playlist on-demand ${pl.name}:`, err);
         }).finally(() => {
-          setIsLoading(false);
-          setLoadingMessage('');
+          setIsPlaylistLoading(false);
+          setPlaylistLoadingName('');
         });
       }
     }
-  }, [sphereSource, isAuthenticated, playlists, setAllSongs, setIsLoading, setLoadingMessage]);
+  }, [sphereSource, isAuthenticated, playlists, setAllSongs]);
 
   // ─── Play a song from the sphere ───
   const handlePlaySong = useCallback(
     async (song: SpatialTrack) => {
       setCurrentTrack(song);
       setFocusedSong(song);
-      setCameraTarget(song.position);
       setProgress(0);
-      setIsLyricsOpen(true); // Open lyrics panel automatically on selection
+      // Lyrics auto-open is handled only in Focus Mode via useEffect
 
       // Set the active queue to match the filtered tracks in the sphere view
       let activeTracks = allSongs;
@@ -738,13 +763,14 @@ export default function FeeloraPage() {
 
     const sources = [
       { tracks: likedTracks, source: 'Liked Songs' },
-      { tracks: playlist1Tracks, source: 'Coding Vibes' },
-      { tracks: playlist2Tracks, source: 'Late Night Jazz' },
-      { tracks: otherTracks, source: 'Ambient Space' },
+      { tracks: playlist1Tracks, source: 'demo-pl-1' },
+      { tracks: playlist2Tracks, source: 'demo-pl-2' },
+      { tracks: otherTracks, source: 'demo-pl-3' },
     ];
-    const spatialTracks = mergeAndDistribute(sources, 7);
+    const spatialTracks = mergeAndDistribute(sources, 7.5);
     
     setAllSongs(spatialTracks);
+    setLibrarySongs(spatialTracks);
     
     const mockPlaylists: SpotifyPlaylist[] = [
       { id: 'demo-pl-1', name: 'Coding Vibes', description: 'Focus beats', uri: '', owner: { display_name: 'Feelora' }, tracks: { total: 50 } },
@@ -805,90 +831,54 @@ export default function FeeloraPage() {
               )}
             </div>
 
-            {/* Bloom control slider - Always visible & horizontal next to Feelora branding */}
-            <div className="glass backdrop-blur-3xl bg-black/60 border border-white/15 rounded-full px-3.5 py-1.5 flex items-center gap-3 h-[36px] shadow-[0_8px_32px_rgba(0,0,0,0.6)] hover:border-white/25 transition-all duration-300">
-              {/* Sun icon */}
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className="text-white/70 shrink-0"
-              >
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-              <span className="text-[9px] font-mono text-[#8E8E93] tracking-wider uppercase font-medium shrink-0">
-                Bloom
-              </span>
-              <input
-                type="range"
-                min="0"
-                max="2"
-                step="0.05"
-                value={bloomIntensity}
-                onChange={(e) => setBloomIntensity(parseFloat(e.target.value))}
-                className="w-16 md:w-20 cursor-pointer accent-white shrink-0"
-              />
-              <span className="text-[9px] font-mono text-white/80 font-bold min-w-[24px] text-right shrink-0">
-                {bloomIntensity.toFixed(2)}
-              </span>
-            </div>
+            {/* Bloom control slider - Moved to a separate vertical container for mobile */}
           </div>
 
           {/* Center: Navigation, Dropdown, Search (hidden in Focus Mode) */}
-          <div className={`flex items-center gap-2 md:gap-4 justify-center flex-1 pointer-events-auto transition-all duration-500 ease-in-out ${isFocusMode ? 'opacity-0 pointer-events-none scale-95 overflow-hidden h-0' : 'opacity-100 scale-100'}`}>
+          <div className={`flex items-center gap-2 md:gap-4 justify-end md:justify-center flex-1 pointer-events-auto transition-all duration-500 ease-in-out ${isFocusMode ? 'opacity-0 pointer-events-none scale-95 overflow-hidden h-0' : 'opacity-100 scale-100'}`}>
             <div className="scale-90 md:scale-100 origin-center shrink-0">
               <NavigationBar />
             </div>
             
-            <div className="w-[1px] h-4 bg-white/10 mx-1 md:mx-2 shrink-0 hidden sm:block" />
+            <div className="w-[1px] h-4 bg-white/10 mx-1 shrink-0 hidden md:block" />
 
             <div className="relative shrink-0">
               <select
                 value={sphereSource}
                 onChange={(e) => setSphereSource(e.target.value)}
-                className="appearance-none glass backdrop-blur-xl bg-black/40 text-[#8E8E93] hover:text-white border border-white/10 rounded-full pl-3 md:pl-4 pr-7 md:pr-9 py-2 text-[10px] md:text-[11px] font-mono hover:bg-white/5 focus:outline-none focus:border-white/25 transition-all cursor-pointer min-w-[100px] md:min-w-[130px] max-w-[180px] h-[34px] shadow-sm"
+                className="appearance-none glass backdrop-blur-xl bg-black/40 text-[#8E8E93] hover:text-white border border-white/10 rounded-full pl-3 md:pl-4 pr-6 md:pr-9 py-2 text-[10px] md:text-[11px] font-mono hover:bg-white/5 focus:outline-none focus:border-white/25 transition-all cursor-pointer w-[90px] md:min-w-[130px] md:max-w-[180px] h-[34px] shadow-sm truncate"
               >
-                <option value="all">Sphere: All</option>
-                <option value="liked">Sphere: Liked</option>
-                {connectedProviders.spotify && <option value="Spotify">Sphere: Spotify</option>}
+                <option value="all">All</option>
+                <option value="liked">Liked</option>
+                {connectedProviders.spotify && <option value="Spotify">Spotify</option>}
                 {playlists.map((pl) => (
-                  <option key={pl.id} value={pl.name}>
+                  <option key={pl.id} value={pl.id}>
                     {pl.name.length > 16 ? pl.name.slice(0, 14) + '…' : pl.name}
                   </option>
                 ))}
               </select>
-              <div className="absolute right-3.5 top-[52%] -translate-y-1/2 pointer-events-none text-white/40 text-[6px]">
+              <div className="absolute right-2 md:right-3.5 top-[52%] -translate-y-1/2 pointer-events-none text-white/40 text-[6px]">
                 ▼
               </div>
             </div>
 
             <button
               onClick={() => useAppStore.getState().setIsSearchOpen(true)}
-              className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-full glass backdrop-blur-xl border border-white/10 bg-black/40 text-[10px] md:text-[11px] font-mono text-[#8E8E93] hover:text-white hover:bg-white/5 transition-all cursor-pointer h-[34px] shrink-0"
+              className="flex items-center justify-center gap-2 w-[34px] md:w-auto px-0 md:px-4 py-2 rounded-full glass backdrop-blur-xl border border-white/10 bg-black/40 text-[10px] md:text-[11px] font-mono text-[#8E8E93] hover:text-white hover:bg-white/5 transition-all cursor-pointer h-[34px] shrink-0"
             >
               <svg
-                width="12"
-                height="12"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2.5"
+                className="shrink-0"
               >
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <span className="hidden sm:inline">Search Universe</span>
+              <span className="hidden md:inline">Search Universe</span>
               <div className="hidden lg:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/40 border border-white/5 text-[8px] text-[#48484A]">
                 <span>⌘K</span>
               </div>
@@ -896,12 +886,15 @@ export default function FeeloraPage() {
           </div>
 
           {/* Right: Disconnect / Exit Demo (hidden in Focus Mode) */}
-          <div className={`flex justify-end shrink-0 pointer-events-auto transition-all duration-500 ease-in-out ${isFocusMode ? 'opacity-0 pointer-events-none w-0 overflow-hidden' : 'opacity-100 w-[140px] md:w-[200px]'}`}>
+          <div className={`flex justify-end shrink-0 pointer-events-auto transition-all duration-500 ease-in-out ${isFocusMode ? 'opacity-0 pointer-events-none w-0 overflow-hidden' : 'opacity-100 md:w-[140px] pl-2'}`}>
             <button
               onClick={handleLogout}
-              className="px-4 md:px-5 py-2 rounded-full glass backdrop-blur-xl border border-white/10 bg-black/40 text-[10px] md:text-[11px] font-mono text-[#FF375F] hover:text-[#ff5c7d] hover:bg-[#FF375F]/15 transition-all cursor-pointer shadow-[0_4px_12px_rgba(255,55,95,0.1)] truncate"
+              className="px-3 md:px-5 py-2 rounded-full glass backdrop-blur-xl border border-white/10 bg-black/40 text-[10px] md:text-[11px] font-mono text-[#FF375F] hover:text-[#ff5c7d] hover:bg-[#FF375F]/15 transition-all cursor-pointer shadow-[0_4px_12px_rgba(255,55,95,0.1)] truncate"
             >
-              {isDemoMode ? 'Exit Demo' : 'Disconnect'}
+              <span className="md:hidden">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              </span>
+              <span className="hidden md:inline">{isDemoMode ? 'Exit Demo' : 'Disconnect'}</span>
             </button>
           </div>
         </div>
@@ -934,11 +927,66 @@ export default function FeeloraPage() {
           {/* Now Playing HUD */}
           {!isFocusMode && <NowPlayingHUD />}
 
+          {/* Category Bar */}
+          <div 
+            className="fixed right-6 md:left-1/2 md:-translate-x-1/2 md:right-auto z-40 bottom-[140px] md:bottom-[170px]"
+            style={{ width: 'min(95vw, 680px)' }}
+          >
+            <CategoryBar />
+          </div>
+
+          {/* Spatial controls D-pad + Zoom */}
+          <SpatialControls />
+          
+          {/* Vertical Bloom Slider for Mobile (Bottom Right) */}
+          {!isFocusMode && (
+            <div className={`fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 md:top-24 md:translate-y-0 pointer-events-auto flex flex-col items-center gap-3 p-3 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] transition-opacity duration-300 ${isLyricsOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white/70">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" />
+                <line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+              <div className="relative h-28 w-4 flex items-center justify-center">
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.05"
+                  value={bloomIntensity}
+                  onChange={(e) => setBloomIntensity(parseFloat(e.target.value))}
+                  className="cursor-pointer accent-white absolute origin-center"
+                  style={{ transform: 'rotate(270deg)', width: '100px', background: 'rgba(255,255,255,0.15)', borderRadius: '9999px', outline: 'none', WebkitAppearance: 'none', height: '4px' }}
+                />
+              </div>
+              <span className="text-[9px] font-mono text-white/80 font-bold tracking-tighter">
+                {bloomIntensity.toFixed(1)}
+              </span>
+            </div>
+          )}
+
           {/* Spatial Search */}
           <SpatialSearch />
 
           {/* Lyrics Panel */}
           <LyricsPanel />
+
+          {/* Dynamic Playlist Loading Pill */}
+          {isPlaylistLoading && (
+            <div className="fixed bottom-[130px] right-6 md:bottom-[230px] md:right-8 z-50 animate-fade-in pointer-events-none">
+              <div className="glass-pill rounded-full px-4.5 py-2.5 flex items-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-white/10 bg-black/70 backdrop-blur-2xl">
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-white/20 border-t-[#0A84FF] animate-spin" />
+                <span className="text-[10px] font-mono text-white/90 tracking-wider font-semibold">
+                  Loading {playlistLoadingName}...
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

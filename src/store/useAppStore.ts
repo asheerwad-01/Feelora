@@ -25,8 +25,10 @@ interface AppState {
 
   /* ── Music Data ── */
   allSongs: SpatialTrack[];
+  librarySongs: SpatialTrack[];
   playlists: SpotifyPlaylist[];
   setAllSongs: (songs: SpatialTrack[]) => void;
+  setLibrarySongs: (songs: SpatialTrack[]) => void;
   setPlaylists: (playlists: SpotifyPlaylist[]) => void;
 
   /* ── Playback ── */
@@ -76,6 +78,30 @@ interface AppState {
   /* ── Bloom Control ── */
   bloomIntensity: number;
   setBloomIntensity: (val: number) => void;
+
+  /* ── Genre / Category ── */
+  activeCategory: string | null;
+  setActiveCategory: (cat: string | null) => void;
+  isGenreModalOpen: boolean;
+  setIsGenreModalOpen: (val: boolean) => void;
+  activeGenre: string | null;
+  setActiveGenre: (genre: string | null) => void;
+  isGenreLoading: boolean;
+  setIsGenreLoading: (val: boolean) => void;
+
+  /* ── Spatial Controls ── */
+  cameraZoom: number;
+  setCameraZoom: (val: number) => void;
+  navigationControls: {
+    up: boolean;
+    down: boolean;
+    left: boolean;
+    right: boolean;
+  };
+  setNavigationControl: (
+    control: 'up' | 'down' | 'left' | 'right',
+    active: boolean
+  ) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -102,8 +128,10 @@ export const useAppStore = create<AppState>((set) => ({
 
   /* ── Music Data ── */
   allSongs: [],
+  librarySongs: [],
   playlists: [],
   setAllSongs: (songs) => set({ allSongs: songs }),
+  setLibrarySongs: (songs) => set({ librarySongs: songs }),
   setPlaylists: (playlists) => set({ playlists }),
 
   /* ── Playback ── */
@@ -153,4 +181,31 @@ export const useAppStore = create<AppState>((set) => ({
   /* ── Bloom Control ── */
   bloomIntensity: 0.8,
   setBloomIntensity: (val) => set({ bloomIntensity: val }),
+
+  /* ── Genre / Category ── */
+  activeCategory: null,
+  setActiveCategory: (cat) => set({ activeCategory: cat }),
+  isGenreModalOpen: false,
+  setIsGenreModalOpen: (val) => set({ isGenreModalOpen: val }),
+  activeGenre: null,
+  setActiveGenre: (genre) => set({ activeGenre: genre }),
+  isGenreLoading: false,
+  setIsGenreLoading: (val) => set({ isGenreLoading: val }),
+
+  /* ── Spatial Controls ── */
+  cameraZoom: 60,
+  setCameraZoom: (val) => set({ cameraZoom: val }),
+  navigationControls: {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+  },
+  setNavigationControl: (control, active) =>
+    set((state) => ({
+      navigationControls: {
+        ...state.navigationControls,
+        [control]: active,
+      },
+    })),
 }));

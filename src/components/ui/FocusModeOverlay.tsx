@@ -303,7 +303,7 @@ export function FocusModeOverlay() {
           <div 
             ref={linesContainerRef}
             className="flex-1 overflow-y-auto pr-4 mb-8 scroll-smooth"
-            style={{ maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' }}
+            style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, black 5%, black 92%, transparent 100%)' }}
           >
             {isLoading ? (
               <div className="flex h-full items-center">
@@ -314,7 +314,7 @@ export function FocusModeOverlay() {
                 <p className="text-white/40 font-mono">No lyrics available</p>
               </div>
             ) : (
-              <div className="space-y-6 pb-32 pt-16">
+              <div className="space-y-6 pb-32 pt-8">
                 {lyrics.lines.map((line, i) => {
                   const isCurrent = i === currentLineIndex;
                   const isPast = i < currentLineIndex;

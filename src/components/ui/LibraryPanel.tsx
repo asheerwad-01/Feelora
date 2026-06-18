@@ -46,15 +46,25 @@ export function LibraryPanel() {
   };
 
   const sources = useMemo(() => {
-    const list = ['all', 'liked'];
-    if (connectedProviders.spotify) list.push('Spotify');
-    return [...list, ...playlists.map(p => p.name)];
+    const list = [
+      { id: 'all', name: 'All Tracks' },
+      { id: 'liked', name: 'Liked Songs' },
+    ];
+    if (connectedProviders.spotify) {
+      list.push({ id: 'Spotify', name: 'Spotify' });
+    }
+    return [
+      ...list,
+      ...playlists.map((p) => ({ id: p.id, name: p.name })),
+    ];
   }, [playlists, connectedProviders]);
 
   const filteredSongs = useMemo(() => {
     if (sphereSource === 'all') return allSongs;
     const searchVal = sphereSource === 'liked' ? 'Liked Songs' : sphereSource;
-    return allSongs.filter((song) => song.sources ? song.sources.includes(searchVal) : song.source === searchVal);
+    return allSongs.filter((song) =>
+      song.sources ? song.sources.includes(searchVal) : song.source === searchVal
+    );
   }, [allSongs, sphereSource]);
 
   const handlePlay = async (song: SpatialTrack) => {
@@ -93,15 +103,15 @@ export function LibraryPanel() {
           <div ref={scrollContainerRef} className="flex gap-2 overflow-x-auto pb-1 scrollbar-none px-2 flex-1 scroll-smooth">
             {sources.map((src) => (
               <button
-                key={src}
-                onClick={() => setSphereSource(src)}
+                key={src.id}
+                onClick={() => setSphereSource(src.id)}
                 className={`px-3 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer select-none shrink-0 ${
-                  sphereSource === src
+                  sphereSource === src.id
                     ? 'bg-white text-black font-semibold shadow-sm'
                     : 'bg-white/5 text-[#8E8E93] hover:text-white hover:bg-white/10'
                 }`}
               >
-                {src === 'all' ? 'All Tracks' : src === 'liked' ? 'Liked Songs' : src}
+                {src.name}
               </button>
             ))}
           </div>

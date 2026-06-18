@@ -20,7 +20,7 @@ const MOUSE_SENSITIVITY = 0.003;
 const INERTIA_DECAY = 0.92;
 
 export function CameraRig() {
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
   const { cameraTarget, focusedSong, setCameraTarget } = useAppStore();
 
   // State refs (no re-renders)
@@ -67,44 +67,79 @@ export function CameraRig() {
 
   // Fly-to animation (for clicking on a card)
   useEffect(() => {
-    if (!cameraTarget || !focusedSong) return;
+    if (!focusedSong) return;
+
+    let targetPhi = focusedSong.phi;
+    let targetTheta = focusedSong.theta;
+    let cardWidth = 0.88; // Fallback default size
+    let foundMesh = false;
+
+    // Dynamically traverse the scene to locate the exact card mesh matching the focused track
+    scene.traverse((obj) => {
+      if (foundMesh) return;
+      if (
+        obj.userData?.track &&
+        (obj.userData.track.id === focusedSong.id ||
+          obj.userData.track.id.startsWith(focusedSong.id + '_v_'))
+      ) {
+        if (typeof obj.userData.track.phi === 'number' && typeof obj.userData.track.theta === 'number') {
+          targetPhi = obj.userData.track.phi;
+          targetTheta = obj.userData.track.theta;
+          if (typeof obj.userData.itemWidth === 'number') {
+            cardWidth = obj.userData.itemWidth;
+          }
+          foundMesh = true;
+        }
+      }
+    });
+
+    const currentY = rotationY.current;
+
+    // Normalize target angle differences to avoid spinning the long way (shortest path)
+    let diffY = targetPhi - currentY;
+    diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+    const finalTargetY = currentY + diffY;
+    const finalTargetX = Math.PI / 2 - targetTheta;
 
     isAnimating.current = true;
-    targetFov.current = getBaseFov(); // Reset zoom to default
-
-    const target = new THREE.Vector3(...cameraTarget);
-    // Position camera most of the way toward the card (72% of radius)
-    const direction = target.clone().normalize();
-    const cameraPos = direction.multiplyScalar(target.length() * 0.72);
+    // Flat telephoto lens zoom to prevent perspective distortion.
+    // Dynamically scale the target FOV based on card size so focused cards occupy the same visual screen area.
+    const zoomTargetFov = 20 * (cardWidth / 0.88);
 
     const tl = gsap.timeline({
       onComplete: () => {
         // Synchronize rotation angles to prevent camera snap/glitch on transition completion
-        rotationY.current = focusedSong.phi;
-        targetRotationY.current = focusedSong.phi;
-        rotationX.current = Math.PI / 2 - focusedSong.theta;
-        targetRotationX.current = Math.PI / 2 - focusedSong.theta;
-        
+        targetRotationY.current = finalTargetY;
+        targetRotationX.current = finalTargetX;
         isAnimating.current = false;
       },
     });
 
-    tl.to(camera.position, {
-      x: cameraPos.x,
-      y: cameraPos.y,
-      z: cameraPos.z,
-      duration: 1.4,
+    tl.to(rotationY, {
+      current: finalTargetY,
+      duration: 1.2,
       ease: 'power3.inOut',
     });
 
     tl.to(
-      targetLookAt.current,
+      rotationX,
       {
-        x: target.x,
-        y: target.y,
-        z: target.z,
-        duration: 1.4,
+        current: finalTargetX,
+        duration: 1.2,
         ease: 'power3.inOut',
+      },
+      '<'
+    );
+
+    tl.to(
+      targetFov,
+      {
+        current: zoomTargetFov,
+        duration: 1.2,
+        ease: 'power3.inOut',
+        onUpdate: () => {
+          useAppStore.getState().setCameraZoom(targetFov.current);
+        },
       },
       '<'
     );
@@ -112,29 +147,39 @@ export function CameraRig() {
     return () => {
       tl.kill();
     };
-  }, [cameraTarget, focusedSong, camera]);
+  }, [focusedSong, scene]);
 
   // Zoom back when focused song is cleared
   useEffect(() => {
-    if (!focusedSong && isAnimating.current === false) {
-      targetFov.current = getBaseFov(); // Reset zoom to default on unfocus
-      // Animate back to center
-      gsap.to(camera.position, {
-        x: 0,
-        y: 0,
-        z: 0.1,
-        duration: 1.2,
-        ease: 'power3.out',
+    if (!focusedSong) {
+      const defaultFov = getBaseFov();
+      // Only animate back if we're not already at default zoom (to prevent running on mount)
+      if (Math.abs(targetFov.current - defaultFov) < 1.0) {
+        return;
+      }
+
+      isAnimating.current = true;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimating.current = false;
+        },
       });
-      gsap.to(targetLookAt.current, {
-        x: 0,
-        y: 0,
-        z: -10,
-        duration: 1.2,
+
+      tl.to(targetFov, {
+        current: defaultFov,
+        duration: 1.0,
         ease: 'power3.out',
+        onUpdate: () => {
+          useAppStore.getState().setCameraZoom(targetFov.current);
+        },
       });
+
+      return () => {
+        tl.kill();
+      };
     }
-  }, [focusedSong, camera]);
+  }, [focusedSong, getBaseFov]);
 
   // Pointer handlers
   const onPointerDown = useCallback((e: PointerEvent) => {
@@ -162,8 +207,9 @@ export function CameraRig() {
 
   const onWheel = useCallback((e: WheelEvent) => {
     // Scroll zoom: deltaY > 0 scroll down (zoom out), deltaY < 0 scroll up (zoom in)
-    targetFov.current += e.deltaY * 0.05;
-    targetFov.current = THREE.MathUtils.clamp(targetFov.current, 8, 120);
+    const newFov = THREE.MathUtils.clamp(targetFov.current + e.deltaY * 0.05, 5, 130);
+    targetFov.current = newFov;
+    useAppStore.getState().setCameraZoom(newFov);
   }, []);
 
   // Register event listeners
@@ -186,6 +232,13 @@ export function CameraRig() {
 
   // Per-frame camera update
   useFrame((state, delta) => {
+    const { navigationControls, cameraZoom } = useAppStore.getState();
+
+    // Sync zoom from store (e.g. slider)
+    if (Math.abs(targetFov.current - cameraZoom) > 0.05) {
+      targetFov.current = THREE.MathUtils.clamp(cameraZoom, 5, 130);
+    }
+
     // Smooth fov zoom LERP
     if (camera instanceof THREE.PerspectiveCamera) {
       if (Math.abs(camera.fov - targetFov.current) > 0.01) {
@@ -194,47 +247,59 @@ export function CameraRig() {
       }
     }
 
-    if (isAnimating.current) {
-      // During fly-to, just look at target
-      camera.lookAt(targetLookAt.current);
-      return;
+    // Smooth rotation updates (only when not animating via GSAP)
+    if (!isAnimating.current) {
+      // Button-based continuous rotation
+      const buttonRotateSpeed = 1.6; // Radians per second
+      if (navigationControls.left) {
+        targetRotationY.current += buttonRotateSpeed * delta;
+      }
+      if (navigationControls.right) {
+        targetRotationY.current -= buttonRotateSpeed * delta;
+      }
+      if (navigationControls.up) {
+        targetRotationX.current += buttonRotateSpeed * delta;
+      }
+      if (navigationControls.down) {
+        targetRotationX.current -= buttonRotateSpeed * delta;
+      }
+
+      // Apply velocity with inertia
+      targetRotationY.current += velocityTheta.current;
+      targetRotationX.current += velocityPhi.current;
+
+      // Clamp vertical rotation to avoid flipping, but allow looking up/down at the poles
+      targetRotationX.current = THREE.MathUtils.clamp(
+        targetRotationX.current,
+        -1.56,
+        1.56
+      );
+
+      // Decay velocity (inertia)
+      velocityTheta.current *= INERTIA_DECAY;
+      velocityPhi.current *= INERTIA_DECAY;
+
+      // Idle rotation when no input
+      if (
+        !isPointerDown.current &&
+        Math.abs(velocityTheta.current) < 0.0001
+      ) {
+        targetRotationY.current += IDLE_ROTATION_SPEED * delta;
+      }
+
+      // Smooth rotation lerp
+      rotationY.current += (targetRotationY.current - rotationY.current) * 0.08;
+      rotationX.current += (targetRotationX.current - rotationX.current) * 0.08;
     }
 
-    // Apply velocity with inertia
-    targetRotationY.current += velocityTheta.current;
-    targetRotationX.current += velocityPhi.current;
-
-    // Clamp vertical rotation to avoid flipping, but allow looking up/down at the poles
-    targetRotationX.current = THREE.MathUtils.clamp(
-      targetRotationX.current,
-      -1.4,
-      1.4
-    );
-
-    // Decay velocity (inertia)
-    velocityTheta.current *= INERTIA_DECAY;
-    velocityPhi.current *= INERTIA_DECAY;
-
-    // Idle rotation when no input
-    if (
-      !isPointerDown.current &&
-      Math.abs(velocityTheta.current) < 0.0001
-    ) {
-      targetRotationY.current += IDLE_ROTATION_SPEED * delta;
-    }
-
-    // Smooth rotation lerp
-    rotationY.current += (targetRotationY.current - rotationY.current) * 0.08;
-    rotationX.current += (targetRotationX.current - rotationX.current) * 0.08;
-
-    // Compute look direction from rotation (no audio-reactive shake/breathing)
+    // Compute look direction from rotation
     const lookDir = new THREE.Vector3(
       Math.sin(rotationY.current) * Math.cos(rotationX.current),
       Math.sin(rotationX.current),
       -Math.cos(rotationY.current) * Math.cos(rotationX.current)
     );
 
-    // Camera stays at its current position (origin or zoomed in), looks in lookDir
+    // Camera stays at center origin (0, 0, 0.1) looking in lookDir
     const lookTarget = new THREE.Vector3().copy(camera.position).add(lookDir);
     camera.lookAt(lookTarget);
   });

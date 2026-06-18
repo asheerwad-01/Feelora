@@ -227,4 +227,62 @@ export const spotifyApi = {
     console.log(`[SpotifyApi] Fetched ${tracks.length} tracks for playlist ${playlistId}`);
     return tracks;
   },
+
+  async getGenreTracks(genre: string, targetCount = 150): Promise<Track[]> {
+    let queryGenre = genre.toLowerCase();
+    // Map standard names to Spotify genre keys
+    if (queryGenre.includes('hip-hop') || queryGenre.includes('rap')) {
+      queryGenre = 'hip-hop';
+    } else if (queryGenre.includes('r&b') || queryGenre.includes('soul')) {
+      queryGenre = 'r-n-b';
+    } else if (queryGenre.includes('edm') || queryGenre.includes('dance')) {
+      queryGenre = 'edm';
+    } else if (queryGenre === 'k-pop') {
+      queryGenre = 'k-pop';
+    } else if (queryGenre === 'j-pop') {
+      queryGenre = 'j-pop';
+    }
+    
+    const limit = 20;
+    let tracks: Track[] = [];
+    
+    console.log(`[SpotifyApi] Fetching tracks for genre: ${genre} (query: genre:"${queryGenre}")`);
+    
+    const fetchPage = async (q: string, offset: number) => {
+      const encodedQuery = encodeURIComponent(q);
+      const endpoint = `search?q=${encodedQuery}&type=track&limit=${limit}&offset=${offset}`;
+      console.log('[SpotifyApi] outgoing request:', { q, offset, limit, endpoint });
+      const data = await fetchFromSpotify(endpoint);
+      return (data.tracks?.items || []).map((t: SpotifyTrack) => mapSpotifyTrackToTrack(t));
+    };
+
+    try {
+      // Fetch up to targetCount tracks in pages
+      for (let offset = 0; offset < targetCount; offset += limit) {
+        const pageTracks = await fetchPage(`genre:"${queryGenre}"`, offset);
+        if (pageTracks.length === 0) break;
+        tracks = [...tracks, ...pageTracks];
+        if (pageTracks.length < limit) break; // No more results
+        await new Promise(r => setTimeout(r, 100)); // buffer
+      }
+
+      // If we got almost nothing, try a fallback search
+      if (tracks.length < 10) {
+        console.log(`[SpotifyApi] Genre-specific query for "${queryGenre}" yielded few results. Using fallback query: "${genre}"`);
+        tracks = [];
+        for (let offset = 0; offset < targetCount; offset += limit) {
+          const pageTracks = await fetchPage(genre, offset);
+          if (pageTracks.length === 0) break;
+          tracks = [...tracks, ...pageTracks];
+          if (pageTracks.length < limit) break;
+          await new Promise(r => setTimeout(r, 100));
+        }
+      }
+    } catch (err) {
+      console.error('[SpotifyApi] Error in getGenreTracks:', err);
+    }
+
+    console.log(`[SpotifyApi] Total tracks fetched for genre ${genre}: ${tracks.length}`);
+    return tracks;
+  },
 };

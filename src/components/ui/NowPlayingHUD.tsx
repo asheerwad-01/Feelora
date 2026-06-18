@@ -84,7 +84,6 @@ export function NowPlayingHUD() {
     const nextTrack = queue[nextIndex];
     setCurrentTrack(nextTrack);
     setFocusedSong(nextTrack);
-    setCameraTarget(nextTrack.position);
     setProgress(0);
 
     try {
@@ -123,7 +122,6 @@ export function NowPlayingHUD() {
     const prevTrack = queue[prevIndex];
     setCurrentTrack(prevTrack);
     setFocusedSong(prevTrack);
-    setCameraTarget(prevTrack.position);
     setProgress(0);
 
     try {
@@ -182,20 +180,20 @@ export function NowPlayingHUD() {
 
   return (
     <div
-      className="fixed bottom-8 z-30 hud-interactive"
+      className="fixed bottom-4 md:bottom-8 z-30 hud-interactive"
       style={{ left: '50%', transform: 'translateX(-50%)' }}
     >
       <div
         ref={panelRef}
-        className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 md:px-6 md:py-4 w-[95vw] md:w-[520px] max-w-[620px] flex flex-col gap-3"
+        className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-3xl p-2 pb-3 md:px-6 md:py-4 w-[95vw] md:w-[520px] max-w-[620px] flex flex-col gap-2 md:gap-3 relative overflow-hidden"
       >
         {/* Top Row: Artwork, Playback Controls, Volume/Toggles */}
         <div className="flex items-center justify-between w-full">
           
           {/* Left: Artwork + Track details */}
-          <div className="flex items-center gap-3 w-[140px] md:w-[160px] shrink-0 min-w-0">
+          <div className="flex items-center gap-2 md:gap-3 w-[130px] md:w-[160px] shrink-0 min-w-0">
             <div
-              className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 cursor-pointer group"
+              className="relative w-9 h-9 md:w-12 md:h-12 rounded-md md:rounded-lg overflow-hidden shrink-0 cursor-pointer group"
               onClick={handleFlyToSong}
             >
               {currentTrack.coverUrl ? (
@@ -217,45 +215,45 @@ export function NowPlayingHUD() {
               )}
               {isPlaying && (
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[8px] font-mono text-white/80 tracking-widest uppercase">Fly To</span>
+                  <span className="text-[6px] md:text-[8px] font-mono text-white/80 tracking-widest uppercase">Fly To</span>
                 </div>
               )}
             </div>
             
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-white truncate">
+              <h3 className="text-xs md:text-sm font-semibold text-white truncate">
                 {currentTrack.title}
               </h3>
-              <p className="text-[10px] text-[#8E8E93] font-mono truncate mt-0.5 tracking-wide uppercase">
+              <p className="text-[9px] md:text-[10px] text-[#8E8E93] font-mono truncate mt-0.5 tracking-wide uppercase">
                 {currentTrack.artist}
               </p>
             </div>
           </div>
 
           {/* Center: Playback Controls */}
-          <div className="flex items-center gap-4 justify-center flex-1">
-            <button onClick={handlePrev} className="w-8 h-8 rounded-full flex items-center justify-center text-[#8E8E93] hover:text-white hover:bg-white/5 transition-all cursor-pointer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <div className="flex items-center gap-2 md:gap-4 justify-center flex-1">
+            <button onClick={handlePrev} className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[#8E8E93] hover:text-white hover:bg-white/5 transition-all cursor-pointer">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="md:w-[14px] md:h-[14px]">
                 <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
               </svg>
             </button>
-            <button onClick={handleTogglePlay} className="w-11 h-11 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer" style={{ boxShadow: `0 0 16px ${currentTrack.accentColor}40` }}>
+            <button onClick={handleTogglePlay} className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer" style={{ boxShadow: `0 0 16px ${currentTrack.accentColor}40` }}>
               {isPlaying ? (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="md:w-[15px] md:h-[15px]"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
               ) : (
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="md:w-[15px] md:h-[15px]"><path d="M8 5v14l11-7z" /></svg>
               )}
             </button>
-            <button onClick={handleNext} className="w-8 h-8 rounded-full flex items-center justify-center text-[#8E8E93] hover:text-white hover:bg-white/5 transition-all cursor-pointer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <button onClick={handleNext} className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[#8E8E93] hover:text-white hover:bg-white/5 transition-all cursor-pointer">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="md:w-[14px] md:h-[14px]">
                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
               </svg>
             </button>
           </div>
 
           {/* Right: Volume & Toggles */}
-          <div className="flex items-center gap-2 md:gap-3 justify-end w-[140px] md:w-[160px] shrink-0">
-            <div className="flex items-center gap-1.5 hidden md:flex">
+          <div className="flex items-center gap-1 md:gap-3 justify-end w-auto md:w-[160px] shrink-0">
+            <div className="items-center gap-1.5 hidden md:flex">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#8E8E93]">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
@@ -264,26 +262,26 @@ export function NowPlayingHUD() {
             </div>
 
             <div className="flex items-center gap-0.5">
-              <button onClick={() => setIsLyricsOpen(!isLyricsOpen)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isLyricsOpen ? 'bg-[#0A84FF]/20 text-[#0A84FF]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'}`} title="Lyrics">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 10h12M4 14h16M4 18h8" /></svg>
+              <button onClick={() => setIsLyricsOpen(!isLyricsOpen)} className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isLyricsOpen ? 'bg-[#0A84FF]/20 text-[#0A84FF]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'}`} title="Lyrics">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="md:w-[13px] md:h-[13px]"><path d="M4 6h16M4 10h12M4 14h16M4 18h8" /></svg>
               </button>
-              <button onClick={() => setIsFocusMode(!isFocusMode)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isFocusMode ? 'bg-[#BF5AF2]/20 text-[#BF5AF2]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'}`} title="Focus Mode">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>
+              <button onClick={() => setIsFocusMode(!isFocusMode)} className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isFocusMode ? 'bg-[#BF5AF2]/20 text-[#BF5AF2]' : 'text-[#8E8E93] hover:text-white hover:bg-white/5'}`} title="Focus Mode">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="md:w-[13px] md:h-[13px]"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>
               </button>
             </div>
           </div>
         </div>
 
         {/* Bottom Row: Progress */}
-        <div className="w-full px-2 md:px-4 flex items-center gap-3">
-          <span className="text-[10px] font-mono text-[#8E8E93] w-8 text-right shrink-0">{formatTime(progress)}</span>
+        <div className="w-full px-1 md:px-4 flex items-center gap-2 md:gap-3 mt-1 md:mt-0">
+          <span className="text-[9px] md:text-[10px] font-mono text-[#8E8E93] w-7 md:w-8 text-right shrink-0">{formatTime(progress)}</span>
           <div ref={progressBarRef} className="flex-1 py-1 cursor-pointer relative group" onClick={handleSeek}>
             <div className="h-1 bg-white/10 rounded-full w-full overflow-hidden">
               <div className="h-full rounded-full transition-all duration-100" style={{ width: `${progressPct}%`, background: `linear-gradient(90deg, ${currentTrack.accentColor}, ${currentTrack.accentColor}80)` }} />
             </div>
-            <div className="absolute top-1/2 w-3 h-3 rounded-full bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-110 pointer-events-none" style={{ left: `${progressPct}%`, transform: 'translate(-50%, -50%)', boxShadow: `0 0 10px ${currentTrack.accentColor}60` }} />
+            <div className="absolute top-1/2 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-white opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-110 pointer-events-none" style={{ left: `${progressPct}%`, transform: 'translate(-50%, -50%)', boxShadow: `0 0 10px ${currentTrack.accentColor}60` }} />
           </div>
-          <span className="text-[10px] font-mono text-[#8E8E93] w-8 shrink-0">{formatTime(currentTrack.duration)}</span>
+          <span className="text-[9px] md:text-[10px] font-mono text-[#8E8E93] w-7 md:w-8 shrink-0">{formatTime(currentTrack.duration)}</span>
         </div>
       </div>
     </div>
