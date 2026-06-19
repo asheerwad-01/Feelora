@@ -40,11 +40,11 @@ export function SpatialControls() {
   };
 
   return (
-    <div className={`fixed z-40 pointer-events-auto select-none animate-fade-in flex flex-col md:flex-row items-center gap-4 md:gap-6 top-1/2 -translate-y-1/2 left-2 md:top-auto md:translate-y-0 md:bottom-8 md:left-auto md:right-8 scale-[0.8] md:scale-100 origin-left md:origin-bottom-right transition-opacity duration-300 ${isLyricsOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+    <div className={`fixed z-40 pointer-events-auto select-none flex flex-col md:flex-row items-center gap-4 md:gap-6 top-1/2 -translate-y-1/2 left-2 md:top-auto md:translate-y-0 md:bottom-8 md:left-auto md:right-8 scale-[0.8] md:scale-100 origin-left md:origin-bottom-right transition-opacity duration-300 ${isLyricsOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
       
       {/* 1. D-Pad Directional Controller */}
       <div 
-        className="w-[105px] h-[105px] rounded-full border border-white/20 relative bg-black/40 backdrop-blur-3xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex items-center justify-center"
+        className="w-[105px] h-[105px] rounded-full relative bg-black/45 backdrop-blur-[50px] backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_40px_rgba(0,0,0,0.6)] flex items-center justify-center"
       >
         {/* Up Arrow */}
         <button
@@ -110,7 +110,7 @@ export function SpatialControls() {
 
       {/* 2. Zoom-in Zoom-out Slider Bar */}
       <div 
-        className="flex flex-col items-center gap-2.5 p-3 rounded-full border border-white/20 bg-black/40 backdrop-blur-3xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] w-10.5"
+        className="flex flex-col items-center gap-2.5 p-3 rounded-full bg-black/45 backdrop-blur-[50px] backdrop-saturate-150 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_40px_rgba(0,0,0,0.6)] w-10.5"
       >
         {/* Zoom In Button */}
         <button

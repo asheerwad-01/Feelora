@@ -110,20 +110,18 @@ export function LyricsPanel() {
 
   return (
     <div
-      className="fixed z-30 hud-interactive"
+      className="fixed z-30 hud-interactive bottom-[130px] md:bottom-[225px]"
       style={{
         left: '50%',
         transform: 'translateX(-50%)',
-        bottom: '225px',
         width: 'min(95vw, 520px)',
         maxWidth: '620px',
       }}
     >
       <div
         ref={panelRef}
-        className="relative flex flex-col overflow-hidden rounded-2xl border border-white/10 shadow-[0_8px_48px_rgba(0,0,0,0.7)]"
+        className="relative flex flex-col overflow-hidden rounded-2xl border border-white/10 shadow-[0_8px_48px_rgba(0,0,0,0.7)] max-h-[50vh] md:max-h-[440px]"
         style={{
-          maxHeight: '440px',
           background: 'rgba(12, 12, 18, 0.55)',
           backdropFilter: 'blur(40px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(40px) saturate(1.4)',
