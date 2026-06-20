@@ -200,7 +200,7 @@ Ensure the following are available in your development environment:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/asheerwad-01/feelora.git
+git clone https://github.com/<your-username>/feelora.git
 cd feelora
 
 # 2. Install dependencies
