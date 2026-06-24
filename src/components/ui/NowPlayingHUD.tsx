@@ -72,7 +72,7 @@ export function NowPlayingHUD() {
   }, [currentTrack, isPlaying, spotifyDeviceId, isPremium]);
 
   const handleNext = useCallback(async () => {
-    const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+    const queue = allSongs;
     if (!currentTrack || queue.length === 0) return;
 
     let nextIndex = 0;
@@ -110,7 +110,7 @@ export function NowPlayingHUD() {
   ]);
 
   const handlePrev = useCallback(async () => {
-    const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+    const queue = allSongs;
     if (!currentTrack || queue.length === 0) return;
 
     let prevIndex = queue.length - 1;

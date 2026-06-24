@@ -59,6 +59,39 @@ export function CameraRig() {
     return () => window.removeEventListener('resize', handleResize);
   }, [focusedSong, getBaseFov]);
 
+  // Handle Reset View Trigger
+  const resetViewTrigger = useAppStore(s => s.resetViewTrigger);
+
+  useEffect(() => {
+    if (resetViewTrigger > 0) {
+      isAnimating.current = true;
+      const tl = gsap.timeline({
+        onComplete: () => {
+          targetRotationY.current = 0;
+          targetRotationX.current = 0;
+          isAnimating.current = false;
+          useAppStore.getState().setFocusedSong(null);
+        }
+      });
+
+      // Calculate shortest path back to 0
+      let currentY = rotationY.current;
+      currentY = Math.atan2(Math.sin(currentY), Math.cos(currentY)); // normalize between -PI to PI
+      rotationY.current = currentY;
+      
+      tl.to(rotationY, { current: 0, duration: 1.2, ease: 'power3.inOut' });
+      tl.to(rotationX, { current: 0, duration: 1.2, ease: 'power3.inOut' }, '<');
+      tl.to(targetFov, { 
+        current: getBaseFov(), 
+        duration: 1.2, 
+        ease: 'power3.inOut',
+        onUpdate: () => useAppStore.getState().setCameraZoom(targetFov.current)
+      }, '<');
+      
+      return () => { tl.kill(); };
+    }
+  }, [resetViewTrigger, getBaseFov]);
+
   // Initialize camera at origin looking outward
   useEffect(() => {
     camera.position.set(0, 0, 0.1);

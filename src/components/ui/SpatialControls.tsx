@@ -131,8 +131,8 @@ export function SpatialControls() {
             min="5"
             max="130"
             step="1"
-            value={cameraZoom}
-            onChange={(e) => setCameraZoom(parseInt(e.target.value))}
+            value={135 - cameraZoom}
+            onChange={(e) => setCameraZoom(135 - parseInt(e.target.value))}
             className="cursor-pointer accent-white absolute origin-center"
             style={{
               transform: 'rotate(270deg)',

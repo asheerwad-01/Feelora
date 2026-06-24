@@ -102,6 +102,10 @@ interface AppState {
     control: 'up' | 'down' | 'left' | 'right',
     active: boolean
   ) => void;
+
+  /* ── View Reset ── */
+  resetViewTrigger: number;
+  triggerResetView: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -208,4 +212,8 @@ export const useAppStore = create<AppState>((set) => ({
         [control]: active,
       },
     })),
+
+  /* ── View Reset ── */
+  resetViewTrigger: 0,
+  triggerResetView: () => set((state) => ({ resetViewTrigger: state.resetViewTrigger + 1 })),
 }));

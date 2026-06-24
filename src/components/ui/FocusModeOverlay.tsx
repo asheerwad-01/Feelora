@@ -158,7 +158,7 @@ export function FocusModeOverlay() {
   };
 
   const handleNext = async () => {
-    const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+    const queue = allSongs;
     if (!currentTrack || queue.length === 0) return;
 
     let nextIndex = 0;
@@ -187,7 +187,7 @@ export function FocusModeOverlay() {
   };
 
   const handlePrev = async () => {
-    const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+    const queue = allSongs;
     if (!currentTrack || queue.length === 0) return;
 
     let prevIndex = queue.length - 1;
@@ -382,7 +382,7 @@ export function FocusModeOverlay() {
               </button>
               
               <button onClick={handleNext} className="text-[#8E8E93] hover:text-white transition-colors">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6v12h2V6zm3.5 6l8.5 6V6z" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
               </button>
             </div>
           </div>
