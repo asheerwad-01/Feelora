@@ -228,7 +228,7 @@ export function CameraRig() {
     const dx = e.clientX - prevPointer.current.x;
     const dy = e.clientY - prevPointer.current.y;
 
-    velocityTheta.current = dx * MOUSE_SENSITIVITY;
+    velocityTheta.current = -dx * MOUSE_SENSITIVITY;
     velocityPhi.current = dy * MOUSE_SENSITIVITY;
 
     prevPointer.current = { x: e.clientX, y: e.clientY };
@@ -285,10 +285,10 @@ export function CameraRig() {
       // Button-based continuous rotation
       const buttonRotateSpeed = 1.6; // Radians per second
       if (navigationControls.left) {
-        targetRotationY.current += buttonRotateSpeed * delta;
+        targetRotationY.current -= buttonRotateSpeed * delta;
       }
       if (navigationControls.right) {
-        targetRotationY.current -= buttonRotateSpeed * delta;
+        targetRotationY.current += buttonRotateSpeed * delta;
       }
       if (navigationControls.up) {
         targetRotationX.current += buttonRotateSpeed * delta;

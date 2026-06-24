@@ -172,11 +172,11 @@ export default function FeeloraPage() {
     setProviderConnected,
     hasLaunchedUniverse,
     setHasLaunchedUniverse,
-    playbackQueue,
     setPlaybackQueue,
     bloomIntensity,
     setBloomIntensity,
     isLyricsOpen,
+    setNavigationControl,
   } = useAppStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -559,7 +559,7 @@ export default function FeeloraPage() {
     }
   }, [isFocusMode, setIsLyricsOpen]);
 
-  // ─── Global Keyboard Shortcuts for Playback (Space: play/pause, ArrowLeft/Right: prev/next) ───
+  // ─── Global Keyboard Shortcuts for Playback (Space: play/pause, B/N: prev/next) ───
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
       // Don't intercept shortcuts when user is typing in an input/textarea
@@ -584,9 +584,15 @@ export default function FeeloraPage() {
         }
       }
 
-      if (e.code === 'ArrowRight') {
+      // Arrow keys for camera rotation (D-pad)
+      if (e.code === 'ArrowUp') setNavigationControl('up', true);
+      if (e.code === 'ArrowDown') setNavigationControl('down', true);
+      if (e.code === 'ArrowLeft') setNavigationControl('left', true);
+      if (e.code === 'ArrowRight') setNavigationControl('right', true);
+
+      if (e.code === 'KeyN') {
         e.preventDefault();
-        const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+        const queue = allSongs;
         if (!currentTrack || queue.length === 0) return;
 
         let nextIndex = 0;
@@ -607,9 +613,9 @@ export default function FeeloraPage() {
         }
       }
 
-      if (e.code === 'ArrowLeft') {
+      if (e.code === 'KeyB') {
         e.preventDefault();
-        const queue = playbackQueue.length > 0 ? playbackQueue : allSongs;
+        const queue = allSongs;
         if (!currentTrack || queue.length === 0) return;
 
         let prevIndex = queue.length - 1;
@@ -631,22 +637,32 @@ export default function FeeloraPage() {
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      // Arrow keys release
+      if (e.code === 'ArrowUp') setNavigationControl('up', false);
+      if (e.code === 'ArrowDown') setNavigationControl('down', false);
+      if (e.code === 'ArrowLeft') setNavigationControl('left', false);
+      if (e.code === 'ArrowRight') setNavigationControl('right', false);
+    };
+
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
   }, [
     currentTrack,
     isPlaying,
     volume,
     allSongs,
-    playbackQueue,
     spotifyDeviceId,
     isPremium,
     setCurrentTrack,
     setFocusedSong,
     setCameraTarget,
     setProgress,
+    setNavigationControl,
   ]);
 
   // ─── Dynamic Playlist Loading & Selection Sync ───
