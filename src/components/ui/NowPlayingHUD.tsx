@@ -154,7 +154,7 @@ export function NowPlayingHUD() {
       const x = e.clientX - rect.left;
       const pct = x / rect.width;
       const seekTime = pct * currentTrack.duration;
-      
+
       const isSpotify = !!(currentTrack.isSpotifyTrack && spotifyDeviceId && isPremium);
       playbackController.seek(seekTime, isSpotify);
     },
@@ -189,7 +189,7 @@ export function NowPlayingHUD() {
       >
         {/* Top Row: Artwork, Playback Controls, Volume/Toggles */}
         <div className="flex items-center justify-between w-full">
-          
+
           {/* Left: Artwork + Track details */}
           <div className="flex items-center gap-2 md:gap-3 w-[130px] md:w-[160px] shrink-0 min-w-0">
             <div
@@ -219,7 +219,7 @@ export function NowPlayingHUD() {
                 </div>
               )}
             </div>
-            
+
             <div className="min-w-0 flex-1">
               <h3 className="text-xs md:text-sm font-semibold text-white truncate">
                 {currentTrack.title}
